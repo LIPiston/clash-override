@@ -843,7 +843,7 @@ function main(config) {
             type: 'select',
             proxies: ['默认节点', ...proxyGroupsRegionNames, '直连'],
             url: 'https://chat.openai.com/cdn-cgi/trace',
-            icon: 'https://fastly.jsdelivr.net/gh/dahaha-365/YaNet@main/IconSet/openai-icon.svg',
+            icon: 'https://fastly.jsdelivr.net/gh/dahaha-365/YaNet@main/IconSet/chatgpt-icon.svg',
         })
     }
 
