@@ -19,12 +19,6 @@ const generatorConfig = {}
  */
 const enable = generatorConfig.enable ?? true
 
-/**
- * urltest自动选择开关
- * true = 使用urltest自动选择最低延迟节点
- * false = 使用select手动选择节点
- */
-const enableUrltest = generatorConfig.enableUrltest ?? false
 
 /**
  * 自动测速策略组配置（参考 ACL4SSR Full MultiMode）
@@ -37,7 +31,7 @@ const enableUrltest = generatorConfig.enableUrltest ?? false
 const autoTestOptions = {
     enable: generatorConfig.autoTestOptions?.enable ?? true,
     url: generatorConfig.autoTestOptions?.url ?? 'http://www.gstatic.com/generate_204',
-    interval: generatorConfig.autoTestOptions?.interval ?? 300,
+    interval: generatorConfig.autoTestOptions?.interval ?? 900,
     timeout: generatorConfig.autoTestOptions?.timeout ?? 3000,
     tolerance: generatorConfig.autoTestOptions?.tolerance ?? 50,
 }
@@ -716,8 +710,8 @@ function main(config) {
             regionProxyGroups.push({
                 ...groupBaseOption,
                 name: region.name,
-                type: enableUrltest ? 'url-test' : 'select',
-                tolerance: enableUrltest ? 50 : undefined,
+                type: 'url-test',
+                tolerance: 50,
                 icon: region.icon,
                 proxies: proxies,
             })
@@ -764,8 +758,8 @@ function main(config) {
             regionProxyGroups.push({
                 ...groupBaseOption,
                 name: rname,
-                type: enableUrltest ? 'url-test' : 'select',
-                tolerance: enableUrltest ? 50 : undefined,
+                type: 'url-test',
+                tolerance: 50,
                 icon: data.icon,
                 proxies: data.proxies,
             });
