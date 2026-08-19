@@ -19,9 +19,7 @@
 
 ## 直接下载
 
-- GitHub 仓库：https://github.com/LIPiston/clash-override
 - 直接下载：https://raw.githubusercontent.com/LIPiston/clash-override/main/global_script.js
-- GitHub 网页版：https://github.com/LIPiston/clash-override/raw/refs/heads/main/global_script.js
 
 ## 快速开始
 
