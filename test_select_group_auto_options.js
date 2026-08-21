@@ -53,6 +53,15 @@ for (const groupName of regionSiteGroups) {
     )
 }
 
+const generatedRules = result.rules
+for (const disabledSiteGroup of regionSiteGroups) {
+    assert.equal(
+        generatedRules.some((rule) => rule.endsWith(`,${disabledSiteGroup}`)),
+        false,
+        `disabled ${disabledSiteGroup} should not receive generated rules`,
+    )
+}
+
 const otherExternalGroup = result['proxy-groups'].find((group) => group.name === '其他外网')
 assert.ok(otherExternalGroup, '其他外网 group should be generated')
 assert.equal(otherExternalGroup.proxies.includes('国内网站'), false)

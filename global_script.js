@@ -462,9 +462,17 @@ const contentOverrides = generatorConfig.contentOverrides ?? {
  */
 function generateCustomRules() {
     const rules = []
+    const customRuleOptions = {
+        japanSites: 'japan',
+        hkSites: 'hongkong',
+        usSites: 'unitedstates',
+    }
 
     // 遍历所有自定义规则配置
-    Object.values(customRules).forEach(ruleConfig => {
+    Object.entries(customRules).forEach(([name, ruleConfig]) => {
+        const option = customRuleOptions[name]
+        if (option && !ruleOptions[option]) return
+
         const target = ruleConfig.target
 
         // 生成 DOMAIN-SUFFIX 规则
