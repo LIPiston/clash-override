@@ -6,12 +6,11 @@
 
 ```javascript
 const enable = true            // 脚本总开关（Mihomo Party 保持 true）
-const enableUrltest = false    // true=地区分组也用自动选延迟最低节点，false=手动 select
 ```
 
 ## 自动测速策略组（参考 ACL4SSR Full MultiMode）
 
-脚本会自动生成三个从**所有节点**里自动测速选择的顶层策略组，并作为「默认节点」的可选项：
+脚本会自动生成三个从**所有节点**里自动测速选择的顶层策略组，并作为「默认节点」以及所有可选分组的候选项：
 
 | 策略组 | 类型 | 作用 |
 |--------|------|------|
@@ -23,7 +22,7 @@ const enableUrltest = false    // true=地区分组也用自动选延迟最低�
 const autoTestOptions = {
     enable: true,            // 自动测速总开关
     url: 'http://www.gstatic.com/generate_204', // 测速地址
-    interval: 300,           // 测速间隔（秒）
+    interval: 900,           // 测速间隔（秒）
     timeout: 3000,           // 单节点超时（毫秒）
     tolerance: 50,           // url-test 延迟容差（毫秒）
 }
