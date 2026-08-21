@@ -44,4 +44,21 @@ const regionGroup = result['proxy-groups'].find((group) => group.name === 'HK香
 assert.equal(regionGroup.type, 'url-test')
 assert.equal(regionGroup.proxies.includes('自动选择'), false)
 
+const regionSiteGroups = ['日本网站', '香港网站', '美国网站', '俄罗斯网站']
+for (const groupName of regionSiteGroups) {
+    assert.equal(
+        result['proxy-groups'].some((group) => group.name === groupName),
+        false,
+        `${groupName} should be disabled by default`,
+    )
+}
+
+const otherExternalGroup = result['proxy-groups'].find((group) => group.name === '其他外网')
+assert.ok(otherExternalGroup, '其他外网 group should be generated')
+assert.equal(otherExternalGroup.proxies.includes('国内网站'), false)
+
+const downloadGroup = result['proxy-groups'].find((group) => group.name === '下载软件')
+assert.ok(downloadGroup, '下载软件 group should be generated')
+assert.equal(downloadGroup.proxies.includes('国内网站'), false)
+
 console.log('Selectable group automatic option checks passed')

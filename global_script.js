@@ -71,10 +71,10 @@ const ruleOptions = {
     whatsapp: false, // Whatsapp
     community: true, // 国外社区（Discord / Facebook / X）
     games: true, // 游戏策略组
-    japan: true, // 日本网站策略组
-    hongkong: true, // 香港网站策略组
-    unitedstates: true, // 美国网站策略组
-    russia: true, // 俄罗斯网站策略组
+    japan: false, // 日本网站策略组（按需开启）
+    hongkong: false, // 香港网站策略组（按需开启）
+    unitedstates: false, // 美国网站策略组（按需开启）
+    russia: false, // 俄罗斯网站策略组（按需开启）
     tracker: true, // 网络分析和跟踪服务
     ads: true, // 常见的网络广告
     ...(generatorConfig.ruleOptions ?? {}),
@@ -1185,7 +1185,6 @@ function main(config) {
                 '直连',
                 'REJECT',
                 ...selectableProxyGroupNames,
-                '国内网站',
             ],
             icon: 'https://fastly.jsdelivr.net/gh/dahaha-365/YaNet@main/IconSet/download-cloud-color-icon.svg',
         },
@@ -1193,7 +1192,7 @@ function main(config) {
             ...groupBaseOption,
             name: '其他外网',
             type: 'select',
-            proxies: [...selectableProxyGroupNames, '直连', '国内网站'],
+            proxies: [...selectableProxyGroupNames, '直连'],
             icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Streaming!CN.png',
         },
         {
