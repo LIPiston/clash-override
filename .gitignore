@@ -13,6 +13,8 @@ node_modules/
 .claude/
 .codex/
 .trellis/
+.zcode/
+.omo/
 
 # 上游仓库本地副本（仅供查看参考）
 tmp/

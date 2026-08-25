@@ -19,6 +19,104 @@ const generatorConfig = {}
  */
 const enable = generatorConfig.enable ?? true
 
+const SAFE_TEST_URL = 'https://www.gstatic.com/generate_204'
+const MIN_INTERVAL = 900
+
+function isObject(value) {
+    return value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isSafeProxy(proxy) {
+    if (!isObject(proxy) || proxy.type === 'direct') return true
+    const type = String(proxy.type || '').toLowerCase()
+    const cipher = String(proxy.cipher || '').toLowerCase()
+    if (proxy['skip-cert-verify'] === true) return false
+    if ((type === 'ss' || type === 'shadowsocks') && /(cfb|rc4|table|none|^chacha20(-ietf)?$)/.test(cipher)) return false
+    if ((type === 'vmess' || type === 'vless') && !(proxy.tls || proxy['reality-opts'])) return false
+    return true
+}
+
+function unique(values) {
+    const seen = new Set()
+    return (values || []).filter((value) => {
+        if (value == null || seen.has(String(value))) return false
+        seen.add(String(value))
+        return true
+    })
+}
+
+function sanitizeHealthCheck(object, isProvider) {
+    if (!isObject(object)) return
+    if (isObject(object['health-check'])) sanitizeHealthCheck(object['health-check'], false)
+    if (isProvider) return
+    if (typeof object.url === 'string') object.url = SAFE_TEST_URL
+    if (object.interval == null || Number(object.interval) < MIN_INTERVAL) object.interval = MIN_INTERVAL
+    object.lazy = true
+}
+
+function applyRuntimeDefaults(config) {
+    config.dns = {
+        enable: true,
+        ipv6: false,
+        'enhanced-mode': 'fake-ip',
+        'fake-ip-range': '198.18.0.1/16',
+        'fake-ip-filter-mode': 'blacklist',
+        'fake-ip-filter': unique([
+            '+.lan', '+.local', 'localhost', 'time.*.com', 'ntp.*.com',
+            '+.market.xiaomi.com', 'localhost.ptlogin2.qq.com', '+.qq.com',
+            '+.tencent.com', '+.gtimg.com', '+.gtimg.cn', '+.qpic.cn',
+            '+.myqcloud.com', '+.idqqimg.com', '+.qlogo.cn',
+            '+.msftconnecttest.com', '+.msftncsi.com', '+.xboxlive.com',
+        ]),
+        'use-hosts': true,
+        'use-system-hosts': true,
+        'respect-rules': true,
+        'prefer-h3': false,
+        'default-nameserver': ['223.5.5.5', '223.6.6.6', '119.29.29.29'],
+        nameserver: ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
+        'direct-nameserver': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
+        'proxy-server-nameserver': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
+        fallback: ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
+        'fallback-filter': {
+            geoip: true,
+            'geoip-code': 'CN',
+            ipcidr: ['240.0.0.0/4', '0.0.0.0/32'],
+            domain: ['+.google.com', '+.facebook.com', '+.youtube.com', '+.github.com', '+.githubusercontent.com', '+.twitter.com', '+.x.com', '+.telegram.org', '+.openai.com', '+.chatgpt.com', '+.anthropic.com'],
+        },
+        'nameserver-policy': {
+            'geosite:category-ads-all': 'rcode://success',
+            'geosite:cn,geolocation-cn,private': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
+            'geosite:geolocation-!cn': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
+        },
+    }
+    config.tun = {
+        enable: true,
+        stack: 'system',
+        'auto-route': true,
+        'auto-redirect': false,
+        'auto-detect-interface': true,
+        'dns-hijack': ['any:53'],
+        'route-exclude-address': ['10.0.0.0/8', '100.64.0.0/10', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7', 'fe80::/10'],
+        mtu: 1492,
+        device: 'Mihomo',
+        'strict-route': false,
+    }
+    config.sniffer = {
+        enable: true,
+        'parse-pure-ip': true,
+        'force-dns-mapping': true,
+        'override-destination': false,
+        sniff: { HTTP: { ports: [80], 'override-destination': false }, TLS: { ports: [443] }, QUIC: { ports: [443] } },
+        'force-domain': ['+.google.com', '+.googleapis.com', '+.gstatic.com', '+.youtube.com', '+.googlevideo.com', '+.github.com', '+.githubusercontent.com', '+.telegram.org', '+.openai.com', '+.chatgpt.com', '+.anthropic.com'],
+        'skip-domain': ['+.push.apple.com', '+.apple.com', '+.icloud.com', '+.mzstatic.com', '+.msftconnecttest.com', '+.msftncsi.com', '+.xboxlive.com', '+.lan', '+.local', 'localhost'],
+        'skip-src-address': ['127.0.0.0/8', '::1/128'],
+        'skip-dst-address': ['10.0.0.0/8', '100.64.0.0/10', '172.16.0.0/12', '192.168.0.0/16', '224.0.0.0/4', '240.0.0.0/4', 'fc00::/7', 'fe80::/10'],
+    }
+    config['keep-alive-idle'] = 30
+    config['keep-alive-interval'] = 30
+    config.profile = { 'store-selected': true, 'store-fake-ip': true }
+}
+
 
 /**
  * 自动测速策略组配置（参考 ACL4SSR Full MultiMode）
@@ -326,6 +424,14 @@ const customRuleSets = {
         path: './ruleset/DustinWin/applications.list',
     },
 
+    // 游戏相关 Minecraft 域名直连
+    lipiston: {
+        behavior: 'classical',
+        format: 'yaml',
+        url: 'https://raw.githubusercontent.com/LIPiston/clash-override/main/ruleset/lipiston.yaml',
+        path: './ruleset/lipiston.yaml',
+    },
+
     // 示例：可以添加更多自定义规则集
     // customGaming: {
     //     behavior: 'classical',
@@ -387,7 +493,7 @@ const defaultCustomRules = {
         processName: ['SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'BaoMiHua.exe'],
         // Tailscale 网段（100.64.0.0/10）走直连，便于访问 Tailnet 内网设备
         ipCidr: ['100.64.0.0/10'],
-        ruleSets: [] // 规则集，格式：['规则集名称']
+        ruleSets: ['lipiston'] // 规则集，格式：['规则集名称']
     },
 
     // 默认节点规则 - 走默认代理的网站
@@ -619,6 +725,23 @@ function main(config) {
         throw new Error('配置文件中未找到任何代理')
     }
 
+    applyRuntimeDefaults(config)
+
+    if (Array.isArray(config.proxies)) {
+        config.proxies = config.proxies.filter(isSafeProxy)
+    }
+
+    if (Array.isArray(config['proxy-groups'])) {
+        for (const group of config['proxy-groups']) {
+            sanitizeHealthCheck(group, false)
+        }
+    }
+    if (isObject(config['proxy-providers'])) {
+        for (const provider of Object.values(config['proxy-providers'])) {
+            sanitizeHealthCheck(provider, true)
+        }
+    }
+
     // 过滤机场注入的假节点（套餐剩余/重置/流量等），避免进入任何分组
     if (Array.isArray(config.proxies)) {
         config.proxies = config.proxies.filter((p) => !FAKE_NODE_REGEX.test(p?.name ?? ''))
@@ -643,7 +766,7 @@ function main(config) {
     /**
      * 这个值设置大点能省电，笔记本和手机需要关注一下
      */
-    config['keep-alive-interval'] = 1800
+    config['keep-alive-interval'] = 30
 
     config['find-process-mode'] = 'strict'
 
@@ -1235,10 +1358,6 @@ function main(config) {
     // 返回修改后的配置
     return config
 }
-
-
-
-
 
 
 

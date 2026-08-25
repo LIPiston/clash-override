@@ -1,73 +1,110 @@
 # clash-override
 
-个人自用的 Clash Verge Rev 全局扩展脚本 / Mihomo Party 覆写脚本。
+个人使用的 Clash Verge Rev / Mihomo Party 全局扩展脚本。
 
-自动完成代理节点地区分组、智能分流、DNS 优化等配置，让机场订阅「即插即用」。
+脚本接管以下配置：
 
-## 项目来源
+- 代理节点过滤、地区分组和自动测速；
+- 常用服务、地区和游戏分流；
+- 自定义域名、关键词、进程和规则集分流；
+- DNS、fake-ip、TUN 和保守嗅探；
+- 健康检查、长连接和 fake-ip 映射保存。
 
-本仓库基于以下项目二次开发，仅做个人定制，非通用发布：
+> 本项目是个人定制配置，不保证适用于所有网络环境。修改后请先确认生成的配置可以正常启动。
 
-| 项目 | 仓库 | 说明 |
-|------|------|------|
-| **YaNet** | https://github.com/dahaha-365/YaNet | 核心脚本来源（BSD 3-Clause） |
-| **clash-override** | https://github.com/Adsryen/clash-override | 核心脚本来源（MIT） |
-| **ACL4SSR** | https://github.com/ACL4SSR/ACL4SSR | 自动测速策略组参考 |
-| **Surfing** | https://github.com/GitMetaio/Surfing | 分流规则 / 策略组结构参考 |
+## 快速使用
 
-> 上游 [clash-override](https://github.com/Adsryen/clash-override) 本身也是基于 [YaNet](https://github.com/dahaha-365/YaNet) 二次开发而来。规则集来自 [MetaCubeX](https://github.com/MetaCubeX/meta-rules-dat)，图标来自 [Qure](https://github.com/Koolson/Qure)。
+直接脚本地址：
 
-## 直接下载
-
-- 直接下载：https://raw.githubusercontent.com/LIPiston/clash-override/main/global_script.js
-
-## 快速开始
+```text
+https://raw.githubusercontent.com/LIPiston/clash-override/main/global_script.js
+```
 
 ### Clash Verge Rev
 
-1. 打开 Clash Verge Rev → **设置** → **配置** → **全局扩展脚本**
-2. 点击 **导入**，粘贴上面的 `global_script.js` 在线地址，或选择下载好的文件
-3. 保存并重启
-4. ⚠️ 配置 geodata 地址为完整版（见下方「必须配置：geodata 地址」）
+1. 打开 **设置 → 配置 → 全局扩展脚本**。
+2. 导入上面的脚本地址，或粘贴 `global_script.js` 内容。
+3. 保存并重新载入配置。
 
 ### Mihomo Party
 
-1. 打开 Mihomo Party → **覆写** → **脚本覆写**
-2. 粘贴 `global_script.js` 内容（或导入在线地址）
-3. 确认脚本开头 `enable` 为 `true`，保存并应用
-4. ⚠️ 配置 geodata 地址为完整版（见下方「必须配置：geodata 地址」）
+1. 打开 **覆写 → 脚本覆写**。
+2. 导入脚本地址，或粘贴 `global_script.js` 内容。
+3. 确认脚本总开关为 `true`。
+4. 关闭客户端对 DNS 和嗅探的接管，让脚本成为唯一配置来源。
+5. 保存并应用配置。
 
-## 必须配置：geodata 地址
+## 使用前设置
 
-脚本开启 `geodata-mode`，且分流规则里包含 `GEOIP,HK/US/JP/RU` 等地区规则，因此**必须使用完整版 `geoip.dat`**。
+### 关闭客户端 DNS / 嗅探接管
 
-如果客户端里的 geodata 地址还是精简版 `geoip-lite.dat`，会因缺少国家代码（如 `hk`）导致内核启动失败：
+如果客户端提供以下开关，建议关闭：
 
+```yaml
+controlDns: false
+controlSniff: false
 ```
+
+否则 Mihomo Party 的界面配置可能覆盖脚本生成的 DNS 或嗅探配置。具体说明见 [DNS、TUN 与嗅探](docs/dns-and-sniffer.md)。
+
+### 使用完整版 geodata
+
+脚本使用地区和地理规则，建议使用完整版 `geoip.dat` 和 `geosite.dat`，不要使用精简版 `geoip-lite.dat`。
+
+推荐地址：
+
+```text
+https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
+https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
+```
+
+如果日志出现以下错误，通常是 geoip 文件不完整：
+
+```text
 country code hk not found in geoip.dat
 ```
 
-导入脚本后，请把客户端的 geoip 地址改成完整版：
+## 内置 Minecraft 直连
 
-```
-https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
-```
+`ruleset/lipiston.yaml` 用于游戏相关 Minecraft 域名直连，当前包含：
 
-- **Mihomo Party**：核心设置里把 `geoip` 地址从 `geoip-lite.dat` 改为 `geoip.dat`（若 UI 找不到，直接编辑核心配置文件，Windows 默认路径 `%APPDATA%\mihomo-party\mihomo.yaml` 中的 `geox-url.geoip`）
-- **Clash Verge Rev**：核心配置里同样把 `geox-url` 的 `geoip` 换成完整版地址
+- `tecostudio` 关键词；
+- `vitasub` 关键词；
+- `mc.windmilltown.net`；
+- `lvss.xyz`。
+
+规则按域名匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。
 
 ## 文档
 
-- [自定义你自己的规则 / 配置说明](docs/configuration.md) — 总开关、自动测速、分流规则、地区分组、强制代理 / 直连规则、Strict Mode、故障排查
-- [DNS 与嗅探设置](docs/dns-and-sniffer.md) — 客户端当前 DNS / 嗅探配置记录
+- [配置说明](docs/configuration.md)：总开关、自动测速、地区分组和自定义分流规则。
+- [DNS、TUN 与嗅探](docs/dns-and-sniffer.md)：脚本生成的运行配置、客户端开关和稳定性说明。
+
+## 本地服务暴露建议
+
+如果不需要让局域网设备使用本机代理，建议在 Mihomo 核心配置中手动设置：
+
+```yaml
+allow-lan: false
+bind-address: 127.0.0.1
+```
+
+这两项没有写入脚本，避免覆盖客户端对本地服务暴露的管理选择。
+
+## 项目来源
+
+本仓库基于以下项目二次开发：
+
+| 项目 | 仓库 | 用途 |
+|------|------|------|
+| YaNet | https://github.com/dahaha-365/YaNet | 核心脚本来源 |
+| clash-override | https://github.com/Adsryen/clash-override | 覆写结构参考 |
+| ACL4SSR | https://github.com/ACL4SSR/ACL4SSR | 自动测速策略组参考 |
+| Surfing | https://github.com/GitMetaio/Surfing | 分流规则结构参考 |
+| MetaCubeX | https://github.com/MetaCubeX/meta-rules-dat | 规则集与 geodata |
 
 ## 许可证
 
-本项目整体按 **GNU GPL v3.0** 分发（因整合了 GPL-3.0 的 [Surfing](https://github.com/GitMetaio/Surfing) 规则与结构），各上游部分的原始许可与版权声明保留在 [LICENSE](LICENSE) 中：
-
-- [YaNet](https://github.com/dahaha-365/YaNet)：BSD 3-Clause
-- [clash-override](https://github.com/Adsryen/clash-override)：MIT
-- [ACL4SSR](https://github.com/ACL4SSR/ACL4SSR)：CC BY-SA 4.0（自动测速策略组参考）
-- [Surfing](https://github.com/GitMetaio/Surfing)：GPL-3.0（分流规则 / 策略组结构参考）
+本项目整体按 GNU GPL v3.0 分发。各上游项目的原始许可证和版权声明保留在 [LICENSE](LICENSE) 中。
 
 仅供学习交流使用，请遵守当地法律法规。

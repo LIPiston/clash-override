@@ -1,171 +1,122 @@
-# DNS 与嗅探设置
+# DNS、TUN 与嗅探
 
-> 本文件记录 Mihomo Party 客户端当前的 DNS 与嗅探（sniffer）配置。
-> 来源：Mihomo Party 核心配置文件（Windows 默认 `%APPDATA%\mihomo-party\mihomo.yaml`）。
->
-> `global_script.js` 已**不再覆盖** DNS 与嗅探，直接使用客户端里的这些设置。
-> 若要修改，请在客户端（Mihomo Party → DNS / 嗅探）里改，改完会写入 `mihomo.yaml`。
+当前 DNS、TUN 和嗅探由 `global_script.js` 统一生成。为了避免 Mihomo Party 的界面配置覆盖脚本配置，建议关闭客户端接管：
 
-## 客户端开关
+```yaml
+controlDns: false
+controlSniff: false
+```
 
-`config.yaml` 中有两个总控开关，控制 DNS / 嗅探是否由客户端接管：
+## DNS 配置
 
-| 开关 | 当前值 | 含义 |
-|------|--------|------|
-| `controlDns` | `true` | 由客户端管理 DNS（页面里的 DNS 卡片可编辑） |
-| `controlSniff` | `true` | 由客户端管理嗅探（页面里的嗅探卡片可编辑） |
-
----
-
-## DNS
-
-`mihomo.yaml` 中的 `dns:` 段，完整内容如下：
+脚本生成的 DNS 核心配置如下：
 
 ```yaml
 dns:
   enable: true
-  ipv6: false                          # 关闭 AAAA 查询，减少 IPv6 侧信道
-  enhanced-mode: fake-ip               # fake-ip 模式
+  ipv6: false
+  enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
-  fake-ip-filter-mode: blacklist       # 下列 fake-ip-filter 为「不返回 fake-ip」的黑名单
-  fake-ip-filter:
-    - +.lan
-    - +.local
-    - localhost
-    - time.*.com
-    - ntp.*.com
-    - +.market.xiaomi.com
-    - localhost.ptlogin2.qq.com
-    - +.qq.com
-    - +.tencent.com
-    - +.gtimg.com
-    - +.gtimg.cn
-    - +.qpic.cn
-    - +.myqcloud.com
-    - +.idqqimg.com
-    - +.qlogo.cn
-    - +.msftconnecttest.com
-    - +.msftncsi.com
-    - +.xboxlive.com
+  fake-ip-filter-mode: blacklist
   use-hosts: true
   use-system-hosts: true
   respect-rules: true
-  default-nameserver:                  # 解析 DoH 域名本身用的纯 IP DNS
+  prefer-h3: false
+  default-nameserver:
     - 223.5.5.5
     - 223.6.6.6
     - 119.29.29.29
-  nameserver:                          # 国内默认 DNS
+  nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
-  proxy-server-nameserver:             # 解析代理服务器域名用的 DNS
+  direct-nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
-  direct-nameserver:                   # 直连域名解析用的 DNS
+  proxy-server-nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
-  fallback:                            # 国外 DNS，配合 fallback-filter 兜底
+  fallback:
     - https://cloudflare-dns.com/dns-query
     - https://dns.google/dns-query
-  fallback-filter:                     # 判断「国内/国外」的分流规则
-    geoip: true
-    geoip-code: CN
-    ipcidr:
-      - 240.0.0.0/4
-      - 0.0.0.0/32
-    domain:                            # 命中这些域名时强制走 fallback（国外）
-      - +.google.com
-      - +.facebook.com
-      - +.youtube.com
-      - +.github.com
-      - +.githubusercontent.com
-      - +.twitter.com
-      - +.x.com
-      - +.telegram.org
-      - +.openai.com
-      - +.chatgpt.com
-      - +.anthropic.com
-  prefer-h3: false
 ```
 
-### DNS 说明
+### 设计取舍
 
-- **国内解析**走阿里 DoH（`dns.alidns.com`）+ 腾讯 DoH（`doh.pub`），全加密、抗劫持。
-- **国外解析**走 Cloudflare + Google 的 DoH，仅在 `fallback-filter` 判定为国外域名时使用。
-- **`default-nameserver`** 用三个国内纯 IP 递归 DNS，专门用来解析上面那些 DoH 域名自己的 IP（DoH 需要一个明文 IP 做 bootstrap）。
-- **`fake-ip-filter-mode: blacklist`**：只有列表里的域名返回真实 IP，其余一律返回 fake-ip；黑名单已把局域网、NTP 校时、QQ/腾讯系、微软连通性检测（`msftconnecttest.com` / `msftncsi.com`）等需要真实 IP 的场景放行。
-- 没看到 `nameserver-policy` 段：客户端界面里 `useNameserverPolicy: false`、`nameserverPolicy: {}`，即当前**未启用**按 geosite 分流的 nameserver-policy，统一靠 `fallback-filter` 的 geoip 判定来分国内外。
+- `fake-ip` 适合 TUN，便于应用流量命中域名规则；
+- `ipv6: false` 优先稳定性，并减少 IPv6 侧信道；
+- `respect-rules: true` 让 DNS 解析路径遵守分流规则；
+- 国内 DoH 用于默认、直连和代理节点域名解析；
+- Cloudflare/Google 作为国外解析 fallback；
+- `default-nameserver` 只用于启动和解析 DoH 服务域名，不是普通业务 DNS；
+- `nameserver-policy` 会将广告域名返回 `rcode://success`，国内/私有域名使用国内 DoH，国外域名使用国外 DoH。
 
----
+fake-ip 黑名单包含局域网、localhost、NTP、QQ/腾讯、微软连通性检测和 Xbox 等常见兼容项。遇到特定应用异常时，再将该域名加入黑名单，不建议一开始把整个 fake-ip 改成 `redir-host`。
 
-## 嗅探（Sniffer）
+## TUN 配置
 
-`mihomo.yaml` 中的 `sniffer:` 段，完整内容如下：
+脚本生成：
+
+```yaml
+tun:
+  enable: true
+  stack: system
+  auto-route: true
+  auto-redirect: false
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+  mtu: 1492
+  strict-route: false
+```
+
+脚本排除局域网、Tailscale、IPv6 私有网段和链路本地地址，避免内网流量被错误代理。
+
+## 嗅探配置
+
+嗅探用于恢复域名信息，但不强制修改连接目标：
 
 ```yaml
 sniffer:
   enable: true
   parse-pure-ip: true
   force-dns-mapping: true
-  override-destination: false          # 只识别域名、不改目的地址（保守）
+  override-destination: false
   sniff:
     HTTP:
-      ports:
-        - 80
-      override-destination: false      # HTTP 不强制覆盖目标
+      ports: [80]
+      override-destination: false
     TLS:
-      ports:
-        - 443
+      ports: [443]
     QUIC:
-      ports:
-        - 443
-  skip-domain:                         # 这些域名跳过嗅探
-    - +.push.apple.com
-    - +.apple.com
-    - +.icloud.com
-    - +.mzstatic.com
-    - +.msftconnecttest.com
-    - +.msftncsi.com
-    - +.xboxlive.com
-    - +.lan
-    - +.local
-    - localhost
-  skip-dst-address:                    # 这些目标地址跳过嗅探
-    - 10.0.0.0/8
-    - 100.64.0.0/10                    # Tailscale 网段
-    - 172.16.0.0/12
-    - 192.168.0.0/16
-    - 224.0.0.0/4
-    - 240.0.0.0/4
-    - fd00::/8
-    - fe80::/10
-  force-domain:                        # 这些域名强制嗅探
-    - +.google.com
-    - +.googleapis.com
-    - +.gstatic.com
-    - +.youtube.com
-    - +.googlevideo.com
-    - +.github.com
-    - +.githubusercontent.com
-    - +.telegram.org
-    - +.openai.com
-    - +.chatgpt.com
-    - +.anthropic.com
-  skip-src-address:
-    - 127.0.0.0/8
-    - ::1/128
+      ports: [443]
 ```
 
-### 嗅探说明
+这种保守模式对 Minecraft、WebSocket、长连接和非标准应用更稳。脚本会跳过局域网、localhost、苹果推送、微软连通性检测和 Xbox 等域名，并跳过私有地址、Tailscale 地址和链路本地地址。
 
-- **保守基线**：`override-destination: false` 表示嗅探只用来恢复域名信息（供日志/规则用），不强行改写连接目的地，避免某些应用出诡异问题。
-- **HTTP 单独关掉了 override**：`sniff.HTTP.override-destination: false`，TLS / QUIC 才默认嗅探。
-- **`skip-domain` 放行苹果推送 / 微软连通性检测 / 局域网**，这些域名被嗅探反而会出问题。
-- **`skip-dst-address` 把私网、组播、Tailscale（`100.64.0.0/10`）、IPv6 链路本地全部跳过**，避免内网流量被嗅探。
-- **`force-domain` 强制对 Google / GitHub / OpenAI 等域名嗅探**，保证这些站点即使目标写成 IP 也能正确映射回域名规则。
+## 稳定性设置
 
----
+脚本还会：
 
-## 注意
+- 将策略组测速地址统一为 `https://www.gstatic.com/generate_204`；
+- 将策略组测速间隔限制为至少 900 秒；
+- 启用延迟测速懒加载；
+- 设置 TCP 保活空闲和间隔为 30 秒；
+- 保存已选策略组和 fake-ip 映射。
 
-- 以上是从当前 `mihomo.yaml` 读到的实际运行值；若你在客户端里改了 DNS / 嗅探，以客户端为准，本文件可同步更新。
-- 脚本侧（`global_script.js`）不含任何 DNS / 嗅探逻辑，二者互不冲突。
+这些设置旨在减少频繁测速、降低空闲长连接被清理的概率，并避免重启后 fake-ip 映射频繁变化。
+
+## 本地服务安全
+
+DNS/TUN 脚本不负责决定代理端口是否对局域网开放。如果只在本机使用 Mihomo，建议手动设置：
+
+```yaml
+allow-lan: false
+bind-address: 127.0.0.1
+```
+
+## 修改原则
+
+1. 优先修改 `global_script.js`，不要在客户端 UI 和脚本中重复维护同一项配置。
+2. 修改 DNS 后重启 Mihomo，避免旧 fake-ip 映射影响测试。
+3. 如果只有单个应用异常，先为该应用补充 fake-ip 黑名单或嗅探跳过项，不要关闭整个 TUN/fake-ip。
+4. Minecraft 服务器直连使用域名规则集，不通过固定端口判断。
