@@ -1,0 +1,6 @@
+# UU 远程 / GameViewer 直连
+payload:
+  - DOMAIN-SUFFIX,nrd.nie.163.com
+  - DOMAIN-SUFFIX,webapp.163.com
+  - DOMAIN-SUFFIX,gdl.netease.com
+  - DOMAIN-SUFFIX,fp.ps.netease.com

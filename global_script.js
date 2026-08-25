@@ -432,6 +432,14 @@ const customRuleSets = {
         path: './ruleset/lipiston.yaml',
     },
 
+    // UU 远程 / GameViewer 域名直连
+    uuRemote: {
+        behavior: 'classical',
+        format: 'yaml',
+        url: 'https://raw.githubusercontent.com/LIPiston/clash-override/main/ruleset/uu-remote.yaml',
+        path: './ruleset/uu-remote.yaml',
+    },
+
     // 示例：可以添加更多自定义规则集
     // customGaming: {
     //     behavior: 'classical',
@@ -490,10 +498,14 @@ const defaultCustomRules = {
         domainSuffix: ['warframe.com', 'prlrr.com', 'g5air.com', 'qslk.net', 'darensoft.com', 'gzankun.com'],
         domainKeyword: ['audiences', 'rlzy', 'rsxt', 'g5air', 'lipiston'],
         domain: ['h1.gzankun.com'],
-        processName: ['SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'BaoMiHua.exe'],
+        processName: [
+            'SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'BaoMiHua.exe',
+            'GameViewer.exe', 'GameViewerService.exe', 'GameViewerServer.exe',
+            'GameViewerLauncher.exe', 'GameViewerHealthd.exe', 'StreamerCodecDetector.exe', 'uuyc-cli.exe',
+        ],
         // Tailscale 网段（100.64.0.0/10）走直连，便于访问 Tailnet 内网设备
         ipCidr: ['100.64.0.0/10'],
-        ruleSets: ['lipiston'] // 规则集，格式：['规则集名称']
+        ruleSets: ['lipiston', 'uuRemote'] // 规则集，格式：['规则集名称']
     },
 
     // 默认节点规则 - 走默认代理的网站
@@ -1358,7 +1370,6 @@ function main(config) {
     // 返回修改后的配置
     return config
 }
-
 
 
 
