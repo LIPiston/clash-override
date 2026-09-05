@@ -54,6 +54,18 @@ for (const groupName of regionSiteGroups) {
 }
 
 const generatedRules = result.rules
+assert.ok(
+    generatedRules.includes('DOMAIN-KEYWORD,tailscale,DIRECT'),
+    'Tailscale domains should bypass the proxy',
+)
+assert.ok(
+    result.dns['fake-ip-filter'].includes('+.tailscale.com'),
+    'Tailscale domains should not receive Fake-IP addresses',
+)
+assert.ok(
+    result.sniffer['skip-domain'].includes('+.tailscale.com'),
+    'Tailscale domains should bypass sniffing',
+)
 for (const disabledSiteGroup of regionSiteGroups) {
     assert.equal(
         generatedRules.some((rule) => rule.endsWith(`,${disabledSiteGroup}`)),

@@ -67,6 +67,7 @@ function applyRuntimeDefaults(config) {
             '+.tencent.com', '+.gtimg.com', '+.gtimg.cn', '+.qpic.cn',
             '+.myqcloud.com', '+.idqqimg.com', '+.qlogo.cn',
             '+.msftconnecttest.com', '+.msftncsi.com', '+.xboxlive.com',
+            '+.tailscale.com',
         ]),
         'use-hosts': true,
         'use-system-hosts': true,
@@ -108,7 +109,7 @@ function applyRuntimeDefaults(config) {
         'override-destination': false,
         sniff: { HTTP: { ports: [80], 'override-destination': false }, TLS: { ports: [443] }, QUIC: { ports: [443] } },
         'force-domain': ['+.google.com', '+.googleapis.com', '+.gstatic.com', '+.youtube.com', '+.googlevideo.com', '+.github.com', '+.githubusercontent.com', '+.telegram.org', '+.openai.com', '+.chatgpt.com', '+.anthropic.com'],
-        'skip-domain': ['+.push.apple.com', '+.apple.com', '+.icloud.com', '+.mzstatic.com', '+.msftconnecttest.com', '+.msftncsi.com', '+.xboxlive.com', '+.lan', '+.local', 'localhost'],
+        'skip-domain': ['+.push.apple.com', '+.apple.com', '+.icloud.com', '+.mzstatic.com', '+.msftconnecttest.com', '+.msftncsi.com', '+.xboxlive.com', '+.tailscale.com', '+.lan', '+.local', 'localhost'],
         'skip-src-address': ['127.0.0.0/8', '::1/128'],
         'skip-dst-address': ['10.0.0.0/8', '100.64.0.0/10', '172.16.0.0/12', '192.168.0.0/16', '224.0.0.0/4', '240.0.0.0/4', 'fc00::/7', 'fe80::/10'],
     }
@@ -496,7 +497,7 @@ const defaultCustomRules = {
     direct: {
         target: 'DIRECT',
         domainSuffix: ['warframe.com', 'prlrr.com', 'g5air.com', 'qslk.net', 'darensoft.com', 'gzankun.com'],
-        domainKeyword: ['audiences', 'rlzy', 'rsxt', 'g5air', 'lipiston'],
+        domainKeyword: ['audiences', 'rlzy', 'rsxt', 'g5air', 'lipiston', 'tailscale'],
         domain: ['h1.gzankun.com'],
         processName: [
             'SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'BaoMiHua.exe',
@@ -1370,6 +1371,4 @@ function main(config) {
     // 返回修改后的配置
     return config
 }
-
-
 
