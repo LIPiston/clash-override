@@ -492,6 +492,15 @@ const defaultCustomRules = {
         ruleSets: [],       // 规则集，格式：['规则集名称']
     },
 
+    // Bing 优先于 AI 规则集，走微软服务策略组
+    microsoftSites: {
+        target: '微软服务',
+        domainSuffix: ['bing.com', 'bing.net'],
+        domainKeyword: [],
+        domain: [],
+        ruleSets: [],
+    },
+
     // 直连规则 - 不走代理的网站和应用
     // 这是你填写「直连规则」的位置：往下面几个数组里加即可
     direct: {
@@ -582,6 +591,7 @@ const contentOverrides = generatorConfig.contentOverrides ?? {
 function generateCustomRules() {
     const rules = []
     const customRuleOptions = {
+        microsoftSites: 'microsoft',
         japanSites: 'japan',
         hkSites: 'hongkong',
         usSites: 'unitedstates',
@@ -1371,4 +1381,3 @@ function main(config) {
     // 返回修改后的配置
     return config
 }
-

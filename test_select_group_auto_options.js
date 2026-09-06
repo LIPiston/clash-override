@@ -54,6 +54,19 @@ for (const groupName of regionSiteGroups) {
 }
 
 const generatedRules = result.rules
+const bingComRule = 'DOMAIN-SUFFIX,bing.com,微软服务'
+const bingNetRule = 'DOMAIN-SUFFIX,bing.net,微软服务'
+const aiRule = 'RULE-SET,ai,国外AI'
+assert.ok(generatedRules.includes(bingComRule), 'Bing.com should use 微软服务')
+assert.ok(generatedRules.includes(bingNetRule), 'Bing.net should use 微软服务')
+assert.ok(
+    generatedRules.indexOf(bingComRule) < generatedRules.indexOf(aiRule),
+    'Bing.com should be evaluated before the AI rule set',
+)
+assert.ok(
+    generatedRules.indexOf(bingNetRule) < generatedRules.indexOf(aiRule),
+    'Bing.net should be evaluated before the AI rule set',
+)
 assert.ok(
     generatedRules.includes('DOMAIN-KEYWORD,tailscale,DIRECT'),
     'Tailscale domains should bypass the proxy',
