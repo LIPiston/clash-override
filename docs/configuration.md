@@ -25,14 +25,14 @@ const enable = true
 ```javascript
 const autoTestOptions = {
     enable: true,
-    url: 'http://www.gstatic.com/generate_204',
-    interval: 180,
+    url: 'https://www.gstatic.com/generate_204',
+    interval: 240,
     timeout: 3000,
     tolerance: 100,
 }
 ```
 
-自动和地区 `url-test` 组默认每 180 秒测速一次。`tolerance: 100` 只会在候选节点比当前节点快超过 100 毫秒时切换，避免短时延迟波动导致频繁换节点；`fallback` 和 `load-balance` 不使用该字段。所有测速组保留 3 秒超时、延迟测速和连续 3 次失败阈值。代理提供者自身的订阅刷新配置不会被改写。
+自动和地区 `url-test` 组默认每 240 秒通过 HTTPS 测速一次。自动组保持按需测速（`lazy: true`），地区 `url-test` 组关闭按需测速（`lazy: false`）以持续预热节点。`tolerance: 100` 只会在候选节点比当前节点快超过 100 毫秒时切换，避免短时延迟波动导致频繁换节点；`fallback` 和 `load-balance` 不使用该字段。所有测速组保留 3 秒超时和连续 3 次失败阈值。代理提供者自身的订阅刷新配置不会被改写。
 
 ## 3. 分流开关
 
