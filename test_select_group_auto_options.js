@@ -40,9 +40,28 @@ assert.deepEqual(automaticGroupTypes, {
     负载均衡: 'load-balance',
 })
 
+const automaticGroupsByName = Object.fromEntries(
+    result['proxy-groups']
+        .filter((group) => automaticGroups.includes(group.name))
+        .map((group) => [group.name, group]),
+)
+
+for (const group of Object.values(automaticGroupsByName)) {
+    assert.equal(group.interval, 180)
+    assert.equal(group.timeout, 3000)
+    assert.equal(group.lazy, true)
+    assert.equal(group['max-failed-times'], 3)
+}
+assert.equal(automaticGroupsByName['自动选择'].tolerance, 100)
+
 const regionGroup = result['proxy-groups'].find((group) => group.name === 'HK香港')
 assert.equal(regionGroup.type, 'url-test')
 assert.equal(regionGroup.proxies.includes('自动选择'), false)
+assert.equal(regionGroup.interval, 180)
+assert.equal(regionGroup.timeout, 3000)
+assert.equal(regionGroup.lazy, true)
+assert.equal(regionGroup['max-failed-times'], 3)
+assert.equal(regionGroup.tolerance, 100)
 
 const regionSiteGroups = ['日本网站', '香港网站', '美国网站', '俄罗斯网站']
 for (const groupName of regionSiteGroups) {

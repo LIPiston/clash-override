@@ -21,6 +21,7 @@ const enable = generatorConfig.enable ?? true
 
 const SAFE_TEST_URL = 'https://www.gstatic.com/generate_204'
 const MIN_INTERVAL = 900
+const URL_TEST_TOLERANCE = 100
 
 function isObject(value) {
     return value && typeof value === 'object' && !Array.isArray(value)
@@ -130,9 +131,9 @@ function applyRuntimeDefaults(config) {
 const autoTestOptions = {
     enable: generatorConfig.autoTestOptions?.enable ?? true,
     url: generatorConfig.autoTestOptions?.url ?? 'http://www.gstatic.com/generate_204',
-    interval: generatorConfig.autoTestOptions?.interval ?? 900,
+    interval: generatorConfig.autoTestOptions?.interval ?? 180,
     timeout: generatorConfig.autoTestOptions?.timeout ?? 3000,
-    tolerance: generatorConfig.autoTestOptions?.tolerance ?? 50,
+    tolerance: generatorConfig.autoTestOptions?.tolerance ?? URL_TEST_TOLERANCE,
 }
 
 // ===== 性能优化：预编译正则表达式 =====
@@ -327,7 +328,7 @@ const ruleProviderCommon = {
 
 // 代理组通用配置
 const groupBaseOption = {
-    interval: 300,
+    interval: 180,
     timeout: 3000,
     url: 'http://cp.cloudflare.com/generate_204',
     lazy: true,
@@ -865,7 +866,7 @@ function main(config) {
                 ...groupBaseOption,
                 name: region.name,
                 type: 'url-test',
-                tolerance: 50,
+                tolerance: URL_TEST_TOLERANCE,
                 icon: region.icon,
                 proxies: proxies,
             })
@@ -913,7 +914,7 @@ function main(config) {
                 ...groupBaseOption,
                 name: rname,
                 type: 'url-test',
-                tolerance: 50,
+                tolerance: URL_TEST_TOLERANCE,
                 icon: data.icon,
                 proxies: data.proxies,
             });
