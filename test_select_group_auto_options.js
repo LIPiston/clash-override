@@ -91,6 +91,14 @@ assert.ok(
     'Tailscale domains should bypass the proxy',
 )
 assert.ok(
+    generatedRules.includes('PROCESS-NAME,RustDesk,DIRECT'),
+    'RustDesk should bypass the proxy',
+)
+assert.ok(
+    generatedRules.includes('PROCESS-NAME,RustDesk.exe,DIRECT'),
+    'RustDesk.exe should bypass the proxy',
+)
+assert.ok(
     result.dns['fake-ip-filter'].includes('+.tailscale.com'),
     'Tailscale domains should not receive Fake-IP addresses',
 )

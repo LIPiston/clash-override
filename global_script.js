@@ -510,7 +510,7 @@ const defaultCustomRules = {
         domainKeyword: ['audiences', 'rlzy', 'rsxt', 'g5air', 'lipiston', 'tailscale'],
         domain: ['h1.gzankun.com'],
         processName: [
-            'SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'BaoMiHua.exe',
+            'SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'RustDesk', 'RustDesk.exe', 'BaoMiHua.exe',
             'GameViewer.exe', 'GameViewerService.exe', 'GameViewerServer.exe',
             'GameViewerLauncher.exe', 'GameViewerHealthd.exe', 'StreamerCodecDetector.exe', 'uuyc-cli.exe',
         ],
