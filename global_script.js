@@ -130,8 +130,8 @@ function applyRuntimeDefaults(config) {
  */
 const autoTestOptions = {
     enable: generatorConfig.autoTestOptions?.enable ?? true,
-    url: generatorConfig.autoTestOptions?.url ?? 'http://www.gstatic.com/generate_204',
-    interval: generatorConfig.autoTestOptions?.interval ?? 180,
+    url: generatorConfig.autoTestOptions?.url ?? SAFE_TEST_URL,
+    interval: generatorConfig.autoTestOptions?.interval ?? 240,
     timeout: generatorConfig.autoTestOptions?.timeout ?? 3000,
     tolerance: generatorConfig.autoTestOptions?.tolerance ?? URL_TEST_TOLERANCE,
 }
@@ -328,9 +328,9 @@ const ruleProviderCommon = {
 
 // 代理组通用配置
 const groupBaseOption = {
-    interval: 180,
+    interval: 240,
     timeout: 3000,
-    url: 'http://cp.cloudflare.com/generate_204',
+    url: SAFE_TEST_URL,
     lazy: true,
     'max-failed-times': 3,
     hidden: false,
@@ -866,6 +866,7 @@ function main(config) {
                 ...groupBaseOption,
                 name: region.name,
                 type: 'url-test',
+                lazy: false,
                 tolerance: URL_TEST_TOLERANCE,
                 icon: region.icon,
                 proxies: proxies,
@@ -914,6 +915,7 @@ function main(config) {
                 ...groupBaseOption,
                 name: rname,
                 type: 'url-test',
+                lazy: false,
                 tolerance: URL_TEST_TOLERANCE,
                 icon: data.icon,
                 proxies: data.proxies,

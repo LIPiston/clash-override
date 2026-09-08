@@ -9,6 +9,7 @@ const result = main({
         { name: 'HK香港 Test', type: 'ss' },
         { name: 'JP日本 Test', type: 'ss' },
         { name: 'US美国 Test', type: 'ss' },
+        { name: 'CA Node', type: 'ss' },
         { name: 'Other Test', type: 'ss' },
     ],
 })
@@ -47,21 +48,28 @@ const automaticGroupsByName = Object.fromEntries(
 )
 
 for (const group of Object.values(automaticGroupsByName)) {
-    assert.equal(group.interval, 180)
+    assert.equal(group.interval, 240)
     assert.equal(group.timeout, 3000)
     assert.equal(group.lazy, true)
     assert.equal(group['max-failed-times'], 3)
+    assert.equal(group.url, 'https://www.gstatic.com/generate_204')
 }
 assert.equal(automaticGroupsByName['自动选择'].tolerance, 100)
 
 const regionGroup = result['proxy-groups'].find((group) => group.name === 'HK香港')
 assert.equal(regionGroup.type, 'url-test')
 assert.equal(regionGroup.proxies.includes('自动选择'), false)
-assert.equal(regionGroup.interval, 180)
+assert.equal(regionGroup.interval, 240)
 assert.equal(regionGroup.timeout, 3000)
-assert.equal(regionGroup.lazy, true)
+assert.equal(regionGroup.lazy, false)
 assert.equal(regionGroup['max-failed-times'], 3)
 assert.equal(regionGroup.tolerance, 100)
+assert.equal(regionGroup.url, 'https://www.gstatic.com/generate_204')
+
+const detectedRegionGroup = result['proxy-groups'].find((group) => group.name === 'CA加拿大')
+assert.equal(detectedRegionGroup.type, 'url-test')
+assert.equal(detectedRegionGroup.interval, 240)
+assert.equal(detectedRegionGroup.lazy, false)
 
 const regionSiteGroups = ['日本网站', '香港网站', '美国网站', '俄罗斯网站']
 for (const groupName of regionSiteGroups) {
