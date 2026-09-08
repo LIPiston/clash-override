@@ -26,13 +26,13 @@ const enable = true
 const autoTestOptions = {
     enable: true,
     url: 'http://www.gstatic.com/generate_204',
-    interval: 900,
+    interval: 180,
     timeout: 3000,
-    tolerance: 50,
+    tolerance: 100,
 }
 ```
 
-脚本会将策略组测速间隔至少收敛到 900 秒，并使用 HTTPS 测速地址。代理提供者自身的订阅刷新配置不会被改写。
+自动和地区 `url-test` 组默认每 180 秒测速一次。`tolerance: 100` 只会在候选节点比当前节点快超过 100 毫秒时切换，避免短时延迟波动导致频繁换节点；`fallback` 和 `load-balance` 不使用该字段。所有测速组保留 3 秒超时、延迟测速和连续 3 次失败阈值。代理提供者自身的订阅刷新配置不会被改写。
 
 ## 3. 分流开关
 
