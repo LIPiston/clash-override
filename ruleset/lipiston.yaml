@@ -4,3 +4,4 @@ payload:
   - DOMAIN-KEYWORD,vitasub
   - DOMAIN-SUFFIX,mc.windmilltown.net
   - DOMAIN-SUFFIX,lvss.xyz
+  - IP-CIDR,149.104.21.239/32
