@@ -50,11 +50,17 @@ const automaticGroupsByName = Object.fromEntries(
 for (const group of Object.values(automaticGroupsByName)) {
     assert.equal(group.interval, 240)
     assert.equal(group.timeout, 3000)
-    assert.equal(group.lazy, true)
+    assert.equal(group.lazy, false)
     assert.equal(group['max-failed-times'], 3)
     assert.equal(group.url, 'https://www.gstatic.com/generate_204')
 }
 assert.equal(automaticGroupsByName['自动选择'].tolerance, 100)
+
+const defaultGroup = result['proxy-groups'].find((group) => group.name === '默认节点')
+assert.equal(defaultGroup.lazy, false)
+for (const group of selectableGroups) {
+    assert.equal(group.lazy, false)
+}
 
 const regionGroup = result['proxy-groups'].find((group) => group.name === 'HK香港')
 assert.equal(regionGroup.type, 'url-test')

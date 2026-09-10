@@ -331,7 +331,7 @@ const groupBaseOption = {
     interval: 240,
     timeout: 3000,
     url: SAFE_TEST_URL,
-    lazy: true,
+    lazy: false,
     'max-failed-times': 3,
     hidden: false,
 }
