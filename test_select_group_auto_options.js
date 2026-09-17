@@ -117,6 +117,10 @@ assert.ok(
     'nekosportsworldtool.exe should bypass the proxy',
 )
 assert.ok(
+    generatedRules.includes('PROCESS-NAME,nekosportsworldtool,DIRECT'),
+    'nekosportsworldtool should bypass the proxy',
+)
+assert.ok(
     result.dns['fake-ip-filter'].includes('+.tailscale.com'),
     'Tailscale domains should not receive Fake-IP addresses',
 )

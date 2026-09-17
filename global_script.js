@@ -511,7 +511,7 @@ const defaultCustomRules = {
         domain: ['h1.gzankun.com'],
         processName: [
             'SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'RustDesk', 'RustDesk.exe', 'BaoMiHua.exe',
-            'GameViewer.exe', 'GameViewerService.exe', 'GameViewerServer.exe', 'nekosportsworldtool.exe',
+            'GameViewer.exe', 'GameViewerService.exe', 'GameViewerServer.exe', 'nekosportsworldtool', 'nekosportsworldtool.exe',
             'GameViewerLauncher.exe', 'GameViewerHealthd.exe', 'StreamerCodecDetector.exe', 'uuyc-cli.exe',
         ],
         // Tailscale 网段（100.64.0.0/10）走直连，便于访问 Tailnet 内网设备
