@@ -105,6 +105,10 @@ assert.ok(
     'Tailscale domains should bypass the proxy',
 )
 assert.ok(
+    generatedRules.includes('DOMAIN-SUFFIX,iydsj.com,DIRECT'),
+    'Sports World Campus domains should bypass the proxy',
+)
+assert.ok(
     generatedRules.includes('PROCESS-NAME,RustDesk,DIRECT'),
     'RustDesk should bypass the proxy',
 )

@@ -506,7 +506,7 @@ const defaultCustomRules = {
     // 这是你填写「直连规则」的位置：往下面几个数组里加即可
     direct: {
         target: 'DIRECT',
-        domainSuffix: ['warframe.com', 'prlrr.com', 'g5air.com', 'qslk.net', 'darensoft.com', 'gzankun.com'],
+        domainSuffix: ['warframe.com', 'prlrr.com', 'g5air.com', 'qslk.net', 'darensoft.com', 'gzankun.com', 'iydsj.com'],
         domainKeyword: ['audiences', 'rlzy', 'rsxt', 'g5air', 'lipiston', 'tailscale'],
         domain: ['h1.gzankun.com'],
         processName: [
