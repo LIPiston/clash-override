@@ -66,12 +66,15 @@ country code hk not found in geoip.dat
 
 ## 内置 Minecraft 直连
 
-`ruleset/lipiston.yaml` 用于游戏相关 Minecraft 域名直连，当前包含：
+`ruleset/lipiston.yaml` 用于游戏相关 Minecraft 和 UU 远程域名直连，当前包含：
 
 - `tecostudio` 关键词；
 - `vitasub` 关键词；
 - `mc.windmilltown.net`；
-- `lvss.xyz`。
+- `lvss.xyz`；
+- UU 远程 / GameViewer 相关的网易域名。
+
+其中 `mix.lipiston.top` 会被强制设置为走默认代理，其余匹配 `lipiston` 的域名保持直连。
 
 规则按域名匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。
 

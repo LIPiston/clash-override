@@ -443,14 +443,6 @@ const customRuleSets = {
         path: './ruleset/lipiston.yaml',
     },
 
-    // UU 远程 / GameViewer 域名直连
-    uuRemote: {
-        behavior: 'classical',
-        format: 'yaml',
-        url: 'https://raw.githubusercontent.com/LIPiston/clash-override/main/ruleset/uu-remote.yaml',
-        path: './ruleset/uu-remote.yaml',
-    },
-
     // 示例：可以添加更多自定义规则集
     // customGaming: {
     //     behavior: 'classical',
@@ -496,7 +488,7 @@ const defaultCustomRules = {
         target: '默认节点',
         domainSuffix: [],   // 域名后缀，如 example.com
         domainKeyword: [],  // 域名关键词
-        domain: [],         // 精确域名
+        domain: ['mix.lipiston.top'], // 精确域名
         processName: [],    // 进程名，如 App.exe
         ipCidr: [],         // IP 段，如 1.2.3.0/24
         ruleSets: [],       // 规则集，格式：['规则集名称']
@@ -525,7 +517,7 @@ const defaultCustomRules = {
         ],
         // Tailscale 网段（100.64.0.0/10）走直连，便于访问 Tailnet 内网设备
         ipCidr: ['100.64.0.0/10'],
-        ruleSets: ['lipiston', 'uuRemote'] // 规则集，格式：['规则集名称']
+        ruleSets: ['lipiston'] // 规则集，格式：['规则集名称']
     },
 
     // 默认节点规则 - 走默认代理的网站

@@ -1,7 +1,12 @@
-# 游戏相关 Minecraft
+# LIPiston 自用
 payload:
   - DOMAIN-KEYWORD,tecostudio
   - DOMAIN-KEYWORD,vitasub
   - DOMAIN-SUFFIX,mc.windmilltown.net
   - DOMAIN-SUFFIX,lvss.xyz
   - IP-CIDR,149.104.21.239/32
+# UU 远程
+  - DOMAIN-SUFFIX,nrd.nie.163.com
+  - DOMAIN-SUFFIX,webapp.163.com
+  - DOMAIN-SUFFIX,gdl.netease.com
+  - DOMAIN-SUFFIX,fp.ps.netease.com
