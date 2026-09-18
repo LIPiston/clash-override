@@ -435,7 +435,7 @@ const customRuleSets = {
         path: './ruleset/DustinWin/applications.list',
     },
 
-    // 游戏相关 Minecraft 域名直连
+    // 自用规则
     lipiston: {
         behavior: 'classical',
         format: 'yaml',
