@@ -116,7 +116,7 @@ direct: {
 
 脚本会自动处理：
 
-- `fake-ip` DNS；
+- `fake-ip` DNS，上游全部为 DoH；
 - TUN 和 DNS 劫持；
 - 保守嗅探；
 - 弱节点过滤；
@@ -140,7 +140,7 @@ bind-address: 127.0.0.1
 
 ## 8. DNS 与嗅探
 
-DNS、TUN 和嗅探由 `global_script.js` 统一生成。请关闭 Mihomo Party 的 DNS/嗅探接管，详细配置见 [DNS、TUN 与嗅探](dns-and-sniffer.md)。
+DNS、TUN 和嗅探由 `global_script.js` 统一生成。DNS 上游全部为 DoH，且一律写成 IP 直连形式（不依赖明文 DNS 自举）。请关闭 Mihomo Party 的 DNS/嗅探接管，否则客户端的界面配置会覆盖脚本生成的全 DoH 设置。详细配置见 [DNS、TUN 与嗅探](dns-and-sniffer.md)。
 
 ## 9. 故障排查
 
@@ -148,4 +148,5 @@ DNS、TUN 和嗅探由 `global_script.js` 统一生成。请关闭 Mihomo Party 
 - 地区分组异常：检查节点名称、地区正则和 `autoDetect`。
 - 内核提示 `country code hk not found in geoip.dat`：改用完整版 `geoip.dat`。
 - DNS 或游戏连接异常：确认 TUN 已启用，关闭客户端 DNS/嗅探接管，并重启 Mihomo 清理旧 fake-ip 映射。
+- 境外域名解析失败或结果异常：确认客户端 DNS 接管已关闭，并保证至少有一个可用代理节点——境外 DoH 的查询需要经由代理发出。
 - Minecraft 规则未命中：确认连接使用的是列表中的域名，而不是未收录的 IP 地址。

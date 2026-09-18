@@ -7,7 +7,7 @@
 - 代理节点过滤、地区分组和自动测速；
 - 常用服务、地区和游戏分流；
 - 自定义域名、关键词、进程和规则集分流；
-- DNS、fake-ip、TUN 和保守嗅探；
+- DNS（全 DoH 上游）、fake-ip、TUN 和保守嗅探；
 - 健康检查、长连接和 fake-ip 映射保存。
 
 > 本项目是个人定制配置，不保证适用于所有网络环境。修改后请先确认生成的配置可以正常启动。
@@ -45,7 +45,7 @@ controlDns: false
 controlSniff: false
 ```
 
-否则 Mihomo Party 的界面配置可能覆盖脚本生成的 DNS 或嗅探配置。具体说明见 [DNS、TUN 与嗅探](docs/dns-and-sniffer.md)。
+否则 Mihomo Party 的界面配置可能覆盖脚本生成的 DNS 或嗅探配置。脚本生成的 DNS 上游全部为 DoH 且使用 IP 直连形式，客户端接管会破坏这一点。具体说明见 [DNS、TUN 与嗅探](docs/dns-and-sniffer.md)。
 
 ### 使用完整版 geodata
 

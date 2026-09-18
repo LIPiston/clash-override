@@ -23,6 +23,15 @@ const SAFE_TEST_URL = 'https://www.gstatic.com/generate_204'
 const MIN_INTERVAL = 900
 const URL_TEST_TOLERANCE = 100
 
+/**
+ * DNS 上游：全部使用 DoH，并且一律写成 IP 直连形式
+ * 用 IP 而不是域名，是为了彻底去掉「先解析 DNS 服务器域名」这一步自举依赖——
+ * 自举只能走明文 UDP/53，既是最容易被污染和劫持的环节，也是 DNS 起不来的主要原因。
+ * 已核对下列地址的 TLS 证书都包含对应 IP 的 SAN，所以 IP 形式依然能做完整证书校验。
+ */
+const DNS_CN_DOH = ['https://223.5.5.5/dns-query', 'https://1.12.12.12/dns-query'] // 阿里 223.5.5.5 / 腾讯 1.12.12.12
+const DNS_REMOTE_DOH = ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query'] // Cloudflare / Google
+
 function isObject(value) {
     return value && typeof value === 'object' && !Array.isArray(value)
 }
@@ -74,11 +83,11 @@ function applyRuntimeDefaults(config) {
         'use-system-hosts': true,
         'respect-rules': true,
         'prefer-h3': false,
-        'default-nameserver': ['223.5.5.5', '223.6.6.6', '119.29.29.29'],
-        nameserver: ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-        'direct-nameserver': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-        'proxy-server-nameserver': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-        fallback: ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
+        'default-nameserver': DNS_CN_DOH,
+        nameserver: DNS_CN_DOH,
+        'direct-nameserver': DNS_CN_DOH,
+        'proxy-server-nameserver': DNS_CN_DOH,
+        fallback: DNS_REMOTE_DOH,
         'fallback-filter': {
             geoip: true,
             'geoip-code': 'CN',
@@ -87,8 +96,8 @@ function applyRuntimeDefaults(config) {
         },
         'nameserver-policy': {
             'geosite:category-ads-all': 'rcode://success',
-            'geosite:cn,geolocation-cn,private': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-            'geosite:geolocation-!cn': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
+            'geosite:cn,geolocation-cn,private': DNS_CN_DOH,
+            'geosite:geolocation-!cn': DNS_REMOTE_DOH,
         },
     }
     config.tun = {

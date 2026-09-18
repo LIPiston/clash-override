@@ -9,7 +9,7 @@ controlSniff: false
 
 ## DNS 配置
 
-脚本生成的 DNS 核心配置如下：
+脚本生成的 DNS 核心配置如下，全部上游均为 DoH（无任何明文 DNS）：
 
 ```yaml
 dns:
@@ -23,32 +23,57 @@ dns:
   respect-rules: true
   prefer-h3: false
   default-nameserver:
-    - 223.5.5.5
-    - 223.6.6.6
-    - 119.29.29.29
+    - https://223.5.5.5/dns-query
+    - https://1.12.12.12/dns-query
   nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+    - https://223.5.5.5/dns-query
+    - https://1.12.12.12/dns-query
   direct-nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+    - https://223.5.5.5/dns-query
+    - https://1.12.12.12/dns-query
   proxy-server-nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+    - https://223.5.5.5/dns-query
+    - https://1.12.12.12/dns-query
   fallback:
-    - https://cloudflare-dns.com/dns-query
-    - https://dns.google/dns-query
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
 ```
+
+### 为什么上游都写成 IP 形式
+
+DoH 的地址一律写成 `https://223.5.5.5/dns-query` 这种 IP 直连形式，而不是 `https://dns.alidns.com/dns-query`。原因是**去掉自举依赖**：
+
+要用域名形式的 DoH，客户端必须先用明文 UDP/53 解析出这个 DoH 服务器的域名——这一步既没有加密、也最容易被污染和劫持，而且一旦系统 DNS 或网络异常，整个 DNS 链条就直接起不来（这正是之前 `dns resolve failed` 大面积超时的根源）。
+
+用 IP 形式就不需要任何前置解析。安全性没有打折：`223.5.5.5`、`1.12.12.12`、`1.1.1.1`、`8.8.8.8` 的 TLS 证书都包含对应 IP 的 SAN，所以仍然执行完整的证书校验，中间人无法伪造。
+
+> 注意：并非所有公共 DoH 都支持 IP 形式。例如 Quad9（`9.9.9.9`）的证书**不含** IP SAN，写成 IP 形式会校验失败；`9.9.9.9:5053` 端口在国内也不可达。新增上游前请先确认其证书带 IP SAN。
 
 ### 设计取舍
 
 - `fake-ip` 适合 TUN，便于应用流量命中域名规则；
 - `ipv6: false` 优先稳定性，并减少 IPv6 侧信道；
-- `respect-rules: true` 让 DNS 解析路径遵守分流规则；
-- 国内 DoH 用于默认、直连和代理节点域名解析；
-- Cloudflare/Google 作为国外解析 fallback；
-- `default-nameserver` 只用于启动和解析 DoH 服务域名，不是普通业务 DNS；
-- `nameserver-policy` 会将广告域名返回 `rcode://success`，国内/私有域名使用国内 DoH，国外域名使用国外 DoH。
+- `respect-rules: true` 让 DNS 解析路径遵守分流规则，境外 DoH 的流量会走代理出去，避免明文或直连暴露；
+- `nameserver` / `direct-nameserver` / `proxy-server-nameserver` 用国内 DoH：国内域名和代理节点域名解析快且不依赖代理；
+- `fallback` 用境外 DoH，通过 `fallback-filter` 只在国内解析结果不可信时接管；
+- `default-nameserver` 同样是 DoH，仅用于启动阶段，不再是明文 DNS 兜底；
+- `nameserver-policy` 会将广告域名返回 `rcode://success`，国内/私有域名走国内 DoH，`geolocation-!cn` 域名直接走境外 DoH。
+
+### 抗污染的兜底逻辑
+
+国内 DoH 对部分被封锁的境外域名会返回**被污染的答案**（实测 `223.5.5.5` 会把 `www.google.com`、`www.youtube.com` 解析成 Facebook 的 IP 段）。因此保留 `fallback` + `fallback-filter` 作为二次校验：
+
+```yaml
+fallback-filter:
+  geoip: true
+  geoip-code: CN
+  ipcidr: [240.0.0.0/4, 0.0.0.0/32]
+  domain: [+.google.com, +.youtube.com, +.github.com, ...]
+```
+
+国内解析结果如果不是中国大陆 IP，或命中 `ipcidr` / `domain` 列表，就被判定为污染并改用境外 DoH 的结果。实测 `www.google.com`、`www.youtube.com`、`www.github.com`、`www.wikipedia.org`、`api.openai.com` 均返回正确的真实 IP。
+
+需要注意的边界：如果代理不可用，境外 DoH 会一并失败，此时核心可能退回使用国内解析器的答案。所以**保持至少一个可用节点**是这套 DNS 方案正常工作的前提。
 
 fake-ip 黑名单包含局域网、localhost、NTP、QQ/腾讯、微软连通性检测和 Xbox 等常见兼容项。遇到特定应用异常时，再将该域名加入黑名单，不建议一开始把整个 fake-ip 改成 `redir-host`。
 
@@ -118,5 +143,7 @@ bind-address: 127.0.0.1
 
 1. 优先修改 `global_script.js`，不要在客户端 UI 和脚本中重复维护同一项配置。
 2. 修改 DNS 后重启 Mihomo，避免旧 fake-ip 映射影响测试。
-3. 如果只有单个应用异常，先为该应用补充 fake-ip 黑名单或嗅探跳过项，不要关闭整个 TUN/fake-ip。
-4. Minecraft 服务器直连使用域名规则集，不通过固定端口判断。
+3. 新增或更换 DoH 上游时，先在 IP 形式上确认证书包含 IP SAN，并实测能解析成功；域名形式会重新引入明文自举依赖。
+4. 保持至少一个可用代理节点，境外 DoH 依赖代理链路。
+5. 如果只有单个应用异常，先为该应用补充 fake-ip 黑名单或嗅探跳过项，不要关闭整个 TUN/fake-ip。
+6. Minecraft 服务器直连使用域名规则集，不通过固定端口判断。
