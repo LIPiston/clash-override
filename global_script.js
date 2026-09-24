@@ -488,7 +488,7 @@ const defaultCustomRules = {
         target: '默认节点',
         domainSuffix: [],   // 域名后缀，如 example.com
         domainKeyword: [],  // 域名关键词
-        domain: ['mix.lipiston.top'], // 精确域名
+        domain: [],         // 精确域名
         processName: [],    // 进程名，如 App.exe
         ipCidr: [],         // IP 段，如 1.2.3.0/24
         ruleSets: [],       // 规则集，格式：['规则集名称']
