@@ -1,0 +1,33 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const cp = require('node:child_process');
+const root = path.resolve(__dirname, '..');
+const source = fs.readFileSync(path.join(root, 'global_script.js'), 'utf8');
+const scratch = process.env.TMPDIR || path.join(__dirname, 'test-work');
+const work = fs.mkdtempSync(path.join(scratch, 'oc-converter-'));
+const input = path.join(work, 'input.js');
+const output = path.join(work, 'module');
+const pathArg = (p) => process.platform === 'win32' ? p : p.replace(/^\/(?:d|c)\//i, (m) => m[0].toUpperCase() + ':' + '\\').replaceAll('/', '\\');
+const run = (text, extra = []) => {
+  fs.writeFileSync(input, text);
+  const p = cp.spawnSync('bash', [path.join(__dirname, 'convert-global-script-bash.sh'), pathArg(input), pathArg(output), ...extra], {encoding:'utf8'});
+  assert.equal(p.status, 0, p.stderr || p.stdout);
+  return fs.readFileSync(output, 'utf8');
+};
+// Regression: newly added multiline rules must propagate, not be a static copy.
+const changed = source.replace("domainSuffix: ['warframe.com'", "domainSuffix: [\n'converter-new.example',\n'warframe.com'");
+let out = run(changed);
+assert.ok(out.includes('DOMAIN-SUFFIX,converter-new.example,DIRECT'), 'new multiline source rule was not converted');
+assert.ok(out.includes('IP-CIDR,100.64.0.0/10,DIRECT'));
+assert.ok(out.includes('GEOSITE,ai,国外AI'), 'AI feature switch must be converted to a geosite rule');
+assert.ok(out.includes('IPV6_ENABLE = 1'));
+assert.ok(out.includes('IPV6_DNS = 1'));
+assert.ok(!out.includes('PROCESS-NAME,'));
+assert.ok(!out.includes('MATCH,'));
+out = run(source.replace('openai: true', 'openai: false'), ['--no-ipv6']);
+assert.ok(!out.includes('RULE-SET,ai,国外AI'));
+assert.ok(out.includes('IPV6_ENABLE = 0'));
+assert.ok(!out.includes('fake-ip-range6: fdfe'));
+console.log('PASS: source mutation, multiline rules, providers, feature switch, process/MATCH exclusion, IPv6 toggle');
+console.log('Test artifacts preserved: ' + work);
