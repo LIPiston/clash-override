@@ -1,18 +1,36 @@
 # clash-override
 
-个人使用的 Clash Verge Rev / Mihomo Party 全局扩展脚本。
+个人使用的 Clash Verge Rev / Mihomo Party 全局扩展脚本，以及把这份脚本转成 OpenClash 旁路由覆写模块的转换器。
+
+`global_script.js` 是**唯一事实来源**：桌面端直接用它，旁路由模块由它生成，两边永远同源。生成物不要手改 —— 改了脚本就重跑转换器。
 
 脚本接管以下配置：
 
 - 代理节点过滤、地区分组和自动测速；
-- 常用服务、地区和游戏分流；
+- 常用服务、地区和游戏分流，广告交给 AWAvenue-Ads-Rule；
 - 自定义域名、关键词、进程和规则集分流；
 - DNS（全 DoH 上游）、fake-ip、TUN 和保守嗅探；
 - 健康检查、长连接和 fake-ip 映射保存。
 
 > 本项目是个人定制配置，不保证适用于所有网络环境。修改后请先确认生成的配置可以正常启动。
 
-## 快速使用
+## 仓库结构
+
+| 路径 | 说明 |
+| --- | --- |
+| `global_script.js` | 桌面端全局扩展脚本，也是旁路由模块的源脚本 |
+| `openclash/convert-global-script.js` | 转换器：在 `vm` 沙箱里真正执行源脚本，读回它生成的整份配置，再翻译成 OpenClash 覆写模块 |
+| `openclash/lipiston-side-router` | 生成物：**纯 v4** 模块，路由器上默认用这条 |
+| `openclash/lipiston-side-router-v4v6` | 生成物：**v4+v6** 模块，两条只差 IPv6 开关 |
+| `openclash/lipiston-side-router.sha256` | 源脚本与两条生成物的校验和 |
+| `openclash/test_converter.js` | 转换器回归测试 |
+| `test_select_group_auto_options.js` | 桌面脚本回归测试：选择组里的自动测速选项不能被排除 |
+| `ruleset/lipiston.yaml` | 个人直连规则集（Minecraft / UU 远程），模块把它注册成本地 rule-provider |
+| `docs/` | 配置说明与 DNS/TUN/嗅探说明 |
+
+旁路由那条线的细节（安装、与桌面端的差异、geodata 空间占用）都在 [openclash/README.md](openclash/README.md)。
+
+## 快速使用（桌面端）
 
 直接脚本地址：
 
@@ -47,11 +65,23 @@ controlSniff: false
 
 否则 Mihomo Party 的界面配置可能覆盖脚本生成的 DNS 或嗅探配置。脚本生成的 DNS 上游全部为 DoH 且使用 IP 直连形式，客户端接管会破坏这一点。具体说明见 [DNS、TUN 与嗅探](docs/dns-and-sniffer.md)。
 
-### 使用完整版 geodata
+### geodata
 
-脚本使用地区和地理规则，建议使用完整版 `geoip.dat` 和 `geosite.dat`，不要使用精简版 `geoip-lite.dat`。
+脚本自己就把 geodata 配好了，桌面端不需要手动下载：
 
-推荐地址：
+```yaml
+geodata-mode: true
+geodata-loader: memconservative   # 小内存环境用；旁路由模块保持不变
+geo-auto-update: true
+geo-update-interval: 24
+geox-url:                         # MetaCubeX meta-rules-dat latest
+  geoip:   .../geoip.dat
+  geosite: .../geosite.dat
+  mmdb:    .../country-lite.mmdb
+  asn:     .../GeoLite2-ASN.mmdb
+```
+
+脚本用到地区和地理规则，必须是**完整版** `geoip.dat` / `geosite.dat`，不要用精简版 `geoip-lite.dat`。如果你的客户端不支持上面的键、需要手动放置，推荐地址：
 
 ```text
 https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
@@ -64,24 +94,48 @@ https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
 country code hk not found in geoip.dat
 ```
 
-## 内置 Minecraft 直连
+旁路由是另一套策略：模块把 `geodata-mode` 固定为 `false`（读 0.2 M 的 `Country.mmdb` 而不是 16.5 M 的 `GeoIP.dat`），并在模块 `[General]` 里钉住哪几份库需要下载，详见 [openclash/README.md](openclash/README.md#旁路由的-geodata-占用)。
 
-`ruleset/lipiston.yaml` 用于游戏相关 Minecraft 和 UU 远程域名直连，当前包含：
+## OpenClash 旁路由模块
 
-- `tecostudio` 关键词；
-- `vitasub` 关键词；
-- `mc.windmilltown.net`；
-- `lvss.xyz`；
-- UU 远程 / GameViewer 相关的网易域名。
+同一条源脚本，转成 OpenClash 的覆写模块（纯追加语义，不替换 OpenClash 自己的策略组和兜底规则）：
 
-其中 `mix.lipiston.top` 会被强制设置为走默认代理，其余匹配 `lipiston` 的域名保持直连。
+```bash
+node openclash/convert-global-script.js          # 同时生成纯 v4 与 v4+v6 两条
+```
 
-规则按域名匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。
+- 按需收窄地区组：`--regions=HK,JP,SG,US,TW,KR`（订阅里没有节点的地区会解析成空组，mihomo 会拒绝启动）。
+- 订阅自己占了同名组名：`--existing-groups=其他节点,默认节点`，转换器就不再重复定义。
+- 完整参数表、生成物结构、与桌面端的逐条差异、路由器上的安装步骤：见 [openclash/README.md](openclash/README.md)。
+
+## 改完之后
+
+```bash
+node test_select_group_auto_options.js        # 桌面脚本回归
+node openclash/test_converter.js              # 转换器回归（结构、引用、环路、geodata 开关）
+node openclash/convert-global-script.js       # 重新生成两条模块
+sha256sum openclash/lipiston-side-router openclash/lipiston-side-router-v4v6
+# 用上面的结果更新 openclash/lipiston-side-router.sha256
+```
+
+改完 `global_script.js` 别忘了重跑转换器：生成物是产物，不是手写文件。推送到路由器后需要**重启** OpenClash 才会重新执行覆写模块（仅 `reload` 不会）。
+
+## 内置 Minecraft / UU 远程直连
+
+`ruleset/lipiston.yaml` 用于游戏相关域名直连，当前包含：
+
+- `tecostudio`、`vitasub` 关键词；
+- `mc.windmilltown.net`、`lvss.xyz`；
+- `149.104.21.239/32`；
+- UU 远程 / GameViewer 相关的网易域名（`nrd.nie.163.com`、`webapp.163.com`、`gdl.netease.com`、`fp.ps.netease.com`）。
+
+规则按域名/关键词匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。桌面端通过 `direct.ruleSets = ['lipiston']` 挂上这份规则集；模块则把它注册为本地 `rule-provider`（`type: file` + `./rule_provider/lipiston.yaml`）。另外 `direct` 规则的关键词表里有 `lipiston`，所以所有匹配 `lipiston` 的域名（含 `mix.lipiston.top`）统一走直连。
 
 ## 文档
 
 - [配置说明](docs/configuration.md)：总开关、自动测速、地区分组和自定义分流规则。
 - [DNS、TUN 与嗅探](docs/dns-and-sniffer.md)：脚本生成的运行配置、客户端开关和稳定性说明。
+- [OpenClash 适配](openclash/README.md)：转换器用法、生成物结构、与桌面端的差异、旁路由安装与 geodata 占用。
 
 ## 本地服务暴露建议
 
@@ -105,6 +159,7 @@ bind-address: 127.0.0.1
 | ACL4SSR | https://github.com/ACL4SSR/ACL4SSR | 自动测速策略组参考 |
 | Surfing | https://github.com/GitMetaio/Surfing | 分流规则结构参考 |
 | MetaCubeX | https://github.com/MetaCubeX/meta-rules-dat | 规则集与 geodata |
+| AWAvenue-Ads-Rule | https://github.com/TG-Twilight/AWAvenue-Ads-Rule | 广告规则集 |
 
 ## 许可证
 

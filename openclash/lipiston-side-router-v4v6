@@ -7,10 +7,11 @@ INTRANET_ALLOWED = 1
 BYPASS_GATEWAY_COMPATIBLE = 1
 ROUTER_SELF_PROXY = 1
 SKIP_PROXY_ADDRESS = 1
-IPV6_ENABLE = 0
-IPV6_DNS = 0
+IPV6_ENABLE = 1
+IPV6_DNS = 1
 IPV6_MODE = 0
-ENABLE_V6_UDP_PROXY = 0
+ENABLE_V6_UDP_PROXY = 1
+FAKEIP_RANGE6 = fdfe:dcba:9876::1/64
 DISABLE_UDP_QUIC = 1
 STORE_FAKEIP = 1
 ENABLE_TCP_CONCURRENT = 1
@@ -25,9 +26,10 @@ GEOSITE_AUTO_UPDATE = 1
 [YAML]
 dns:
   enable: true
-  ipv6: false
+  ipv6: true
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
+  fake-ip-range6: 'fdfe:dcba:9876::1/64'
   fake-ip-filter-mode: blacklist
   use-hosts: true
   use-system-hosts: true

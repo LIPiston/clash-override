@@ -184,7 +184,6 @@ const ruleOptions = {
     hongkong: false, // 香港网站策略组（按需开启）
     unitedstates: false, // 美国网站策略组（按需开启）
     russia: false, // 俄罗斯网站策略组（按需开启）
-    tracker: true, // 网络分析和跟踪服务
     ads: true, // 常见的网络广告
     ...(generatorConfig.ruleOptions ?? {}),
 }
@@ -1211,26 +1210,20 @@ function main(config) {
         })
     }
 
-    if (ruleOptions.tracker) {
-        rules.push('GEOSITE,tracker,跟踪分析')
-        config['proxy-groups'].push({
-            ...groupBaseOption,
-            name: '跟踪分析',
-            type: 'select',
-            proxies: ['REJECT', '直连', ...selectableProxyGroupNames],
-            icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Reject.png',
-        })
-    }
+    // 跟踪分析组已移除：AWAvenue-Ads-Rule 里已经内置了跟踪/分析域名，而且不少路由器的
+    // GeoSite.dat 根本没有 tracker 这个分类（mihomo 会直接以
+    // `list tracker not found in GeoSite.dat` 拒绝启动）。这些域名现在跟着下面的
+    // RULE-SET,AWAvenue-Ads-Rule 一起交给「广告过滤」处理。
 
     if (ruleOptions.ads) {
         rules.push('GEOSITE,category-ads-all,广告过滤')
-        rules.push('RULE-SET,adblockmihomo,广告过滤')
-        ruleProviders.set('adblockmihomo', {
+        rules.push('RULE-SET,AWAvenue-Ads-Rule,广告过滤')
+        ruleProviders.set('AWAvenue-Ads-Rule', {
             ...ruleProviderCommon,
-            behavior: 'domain',
-            format: 'mrs',
-            url: 'https://github.com/217heidai/adblockfilters/raw/refs/heads/main/rules/adblockmihomo.mrs',
-            path: './ruleset/adblockfilters/adblockmihomo.mrs',
+            behavior: 'classical',
+            format: 'yaml',
+            url: 'https://github.boki.moe/https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash-Classical.yaml',
+            path: './ruleset/AWAvenue/AWAvenue-Ads-Rule-Clash-Classical.yaml',
         })
         config['proxy-groups'].push({
             ...groupBaseOption,
@@ -1375,7 +1368,13 @@ function main(config) {
             ...groupBaseOption,
             name: '其他节点',
             type: 'select',
-            proxies: [...selectableProxyGroupNames, ...otherProxyGroups],
+            // 避免环路：'其他节点' 不能把自己列为成员；'默认节点' 也不能列进来，
+            // 因为它已经把 '其他节点' 当作成员（见上面的 proxyGroupsRegionNames），
+            // 互相引用会被 mihomo 判为 loop is detected in ProxyGroup。
+            proxies: [
+                ...selectableProxyGroupNames.filter((x) => x !== '其他节点' && x !== '默认节点'),
+                ...otherProxyGroups,
+            ],
             icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/World_Map.png',
         })
     }
