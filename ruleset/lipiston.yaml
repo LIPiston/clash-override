@@ -10,3 +10,7 @@ payload:
   - DOMAIN-SUFFIX,webapp.163.com
   - DOMAIN-SUFFIX,gdl.netease.com
   - DOMAIN-SUFFIX,fp.ps.netease.com
+# 运动世界校园（NekoSportsWorldTool：run/discovery.gxapp.iydsj.com，OBS 签名回源同域）
+  - DOMAIN-SUFFIX,iydsj.com
+# 登录极验人机验证（gcaptcha4.geetest.com / static.geetest.com）
+  - DOMAIN-SUFFIX,geetest.com

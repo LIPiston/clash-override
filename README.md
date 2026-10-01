@@ -120,14 +120,15 @@ sha256sum openclash/lipiston-side-router openclash/lipiston-side-router-v4v6
 
 改完 `global_script.js` 别忘了重跑转换器：生成物是产物，不是手写文件。推送到路由器后需要**重启** OpenClash 才会重新执行覆写模块（仅 `reload` 不会）。
 
-## 内置 Minecraft / UU 远程直连
+## 内置 Minecraft / UU 远程 / 运动世界校园直连
 
-`ruleset/lipiston.yaml` 用于游戏相关域名直连，当前包含：
+`ruleset/lipiston.yaml` 用于游戏与校园 App 相关域名直连，当前包含：
 
 - `tecostudio`、`vitasub` 关键词；
 - `mc.windmilltown.net`、`lvss.xyz`；
 - `149.104.21.239/32`；
-- UU 远程 / GameViewer 相关的网易域名（`nrd.nie.163.com`、`webapp.163.com`、`gdl.netease.com`、`fp.ps.netease.com`）。
+- UU 远程 / GameViewer 相关的网易域名（`nrd.nie.163.com`、`webapp.163.com`、`gdl.netease.com`、`fp.ps.netease.com`）；
+- 运动世界校园 / [NekoSportsWorldTool](https://github.com/YanamiNeko/NekoSportsWorldTool) 的域名（`iydsj.com`，覆盖 `run.gxapp.iydsj.com`、`discovery.gxapp.iydsj.com`）与登录用极验域名（`geetest.com`）。
 
 规则按域名/关键词匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。桌面端通过 `direct.ruleSets = ['lipiston']` 挂上这份规则集；模块则把它注册为本地 `rule-provider`（`type: file` + `./rule_provider/lipiston.yaml`）。另外 `direct` 规则的关键词表里有 `lipiston`，所以所有匹配 `lipiston` 的域名（含 `mix.lipiston.top`）统一走直连。
 
