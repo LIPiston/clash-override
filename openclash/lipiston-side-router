@@ -168,15 +168,17 @@ proxies+:
     type: direct
     udp: true
 
-# Groups and rules are appended / prepended: OpenClash keeps its own groups, its
-# own rule set and its own final MATCH.
-proxy-groups+:
-  - name: 默认节点
+# The subscription's whole group tree is replaced, not extended: exactly one selector
+# tree ends up in the config, shaped like the desktop script's. The subscription's own
+# 节点选择/自动选择 would otherwise survive next to ours as a second, unmanaged tree --
+# and every rule that still points at them would ignore the module.
+proxy-groups!:
+  - name: 节点选择
     type: select
     proxies:
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -209,10 +211,10 @@ proxy-groups+:
   - name: 国外AI
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -245,10 +247,10 @@ proxy-groups+:
   - name: YouTube
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -281,10 +283,10 @@ proxy-groups+:
   - name: Spotify
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -317,10 +319,10 @@ proxy-groups+:
   - name: Pixiv
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -353,10 +355,10 @@ proxy-groups+:
   - name: 国外社区
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -389,10 +391,10 @@ proxy-groups+:
   - name: 游戏专用
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -427,10 +429,10 @@ proxy-groups+:
     proxies:
       - REJECT
       - 直连
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -462,10 +464,10 @@ proxy-groups+:
   - name: 苹果服务
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -498,10 +500,10 @@ proxy-groups+:
   - name: 谷歌服务
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -534,10 +536,10 @@ proxy-groups+:
   - name: Github
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -570,10 +572,10 @@ proxy-groups+:
   - name: 微软服务
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -608,10 +610,10 @@ proxy-groups+:
     proxies:
       - 直连
       - REJECT
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -643,10 +645,10 @@ proxy-groups+:
   - name: 其他外网
     type: select
     proxies:
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -680,10 +682,10 @@ proxy-groups+:
     type: select
     proxies:
       - 直连
-      - 默认节点
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 节点选择
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -712,7 +714,7 @@ proxy-groups+:
     max-failed-times: 3
     hidden: false
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/StreamingCN.png'
-  - name: '自动选择·模块'
+  - name: 自动选择
     type: url-test
     include-all: true
     exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
@@ -724,7 +726,7 @@ proxy-groups+:
     max-failed-times: 3
     hidden: false
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Auto.png'
-  - name: '故障转移·模块'
+  - name: 故障转移
     type: fallback
     include-all: true
     exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
@@ -735,7 +737,7 @@ proxy-groups+:
     max-failed-times: 3
     hidden: false
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Rocket.png'
-  - name: '负载均衡·模块'
+  - name: 负载均衡
     type: load-balance
     include-all: true
     exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
@@ -1012,9 +1014,9 @@ proxy-groups+:
     exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
     exclude-filter: '(?i)(?:港|香港|HONG KONG|HONGKONG|hk|HK|hongkong|hong kong)|(?:美|🇺🇸|us|USA|usa|US|united state|UNITED STATE|america|America|AMERICA)|(?:日|日本|JP|Jp|🇯🇵|jp|japan|JAPAN|iij)|(?:韩|韩国|kr|KR|korea|KOREA)|(?:新加坡|🇸🇬|sg|SG|singapore|SINGAPORE)|(?:中国|🇨🇳|cn|CN|china|CHINA)|(?:台湾|🇹🇼|tw|TW|taiwan|tai wan|TAIWAN|TAI WAN)|(?:英|uk|UK|united kingdom|great britain)|(?:德国|de|DE|germany)|(?:马来|my|MY|malaysia)|(?:土耳其|tk|TK|tr|TR|turkey)|(?:加|加拿大|ca|CA|canada|CANADA|CAN)|(?:法|法国|fr|FR|france|FRANCE|FRA)|(?:希|希腊|gr|GR|greece|GREECE|GRC)|(?:立陶宛|lt|LT|lithuania|LITHUANIA|LTU)|(?:北马其顿|马其顿|mk|MK|macedonia|MACEDONIA|MKD)|(?:荷|荷兰|nl|NL|netherlands|NETHERLANDS|holland|HOLLAND|NLD)|(?:波|波兰|pl|PL|poland|POLAND|POL)|(?:瑞典|sweden|stockholm|🇸🇪)|(?:阿根廷|🇦🇷|argentina)'
     proxies:
-      - '自动选择·模块'
-      - '故障转移·模块'
-      - '负载均衡·模块'
+      - 自动选择
+      - 故障转移
+      - 负载均衡
       - HK香港
       - US美国
       - JP日本
@@ -1072,7 +1074,7 @@ rule-providers:
     url: 'https://github.boki.moe/https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash-Classical.yaml'
     path: './rule_provider/AWAvenue-Ads-Rule-Clash-Classical.yaml'
 
-# Prepended to OpenClash's own rule list.
+# Prepended to OpenClash's own rule list, which keeps its own final MATCH.
 +rules:
   - DOMAIN-SUFFIX,bing.com,微软服务
   - DOMAIN-SUFFIX,bing.net,微软服务
@@ -1092,12 +1094,12 @@ rule-providers:
   - DOMAIN,h1.gzankun.com,DIRECT
   - IP-CIDR,100.64.0.0/10,DIRECT
   - RULE-SET,lipiston,DIRECT
-  - DOMAIN-SUFFIX,augmentcode.com,默认节点
-  - DOMAIN-SUFFIX,javdb.com,默认节点
-  - DOMAIN-SUFFIX,jdbstatic.com,默认节点
-  - DOMAIN-KEYWORD,postman,默认节点
-  - DOMAIN-KEYWORD,stripchat,默认节点
-  - DOMAIN-KEYWORD,qbittorrent,默认节点
+  - DOMAIN-SUFFIX,augmentcode.com,节点选择
+  - DOMAIN-SUFFIX,javdb.com,节点选择
+  - DOMAIN-SUFFIX,jdbstatic.com,节点选择
+  - DOMAIN-KEYWORD,postman,节点选择
+  - DOMAIN-KEYWORD,stripchat,节点选择
+  - DOMAIN-KEYWORD,qbittorrent,节点选择
   - RULE-SET,applications,下载软件
   - DOMAIN-SUFFIX,grazie.ai,国外AI
   - DOMAIN-SUFFIX,grazie.aws.intellij.net,国外AI

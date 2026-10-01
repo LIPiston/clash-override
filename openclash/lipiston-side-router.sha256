@@ -3,6 +3,6 @@ variants in one run (IPv4-only at the bare path, dual-stack at `-v4v6`).
 
 SHA-256 of `global_script.js`: `58671a36976714a599b00f2fedddfd8c3c11227c7ffbe3fc63bc9d93ebf4b652`
 
-SHA-256 of `openclash/lipiston-side-router`: `899450a2940f8022f0465d72d79a294fa2c52d32f4d00777a2a033752da3f798`
+SHA-256 of `openclash/lipiston-side-router`: `d25a1aad5f513376e4d3fbcd0cdc7bd40982edc8eb090d02bf75f58ce4ca164f`
 
-SHA-256 of `openclash/lipiston-side-router-v4v6`: `314bda16a338d650f65bec208d07bc23805e34684952a0a29e467a3fd808a682`
+SHA-256 of `openclash/lipiston-side-router-v4v6`: `14bf85d99e739b6e54f19c1931fa7e8d0d22d6e71e53310936ba9b4af7436e52`

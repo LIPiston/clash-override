@@ -11,8 +11,10 @@
  * The generated module is meant for an OpenClash instance running as a side
  * router:
  *   - DNS / runtime keys come straight from the source script.
- *   - Proxy groups are appended with `proxy-groups+`.
- *   - Rules are prepended with `+rules` so OpenClash's own catch-all still wins.
+ *   - Proxy groups REPLACE OpenClash's own with `proxy-groups!`, so exactly one
+ *     selector tree exists -- the same shape the desktop script produces.
+ *   - Rules are prepended with `+rules` so OpenClash's own catch-all still wins
+ *     (`--replace-rules` takes the whole rule list over instead).
  *   - Region groups are built dynamically with include-all + filter, because the
  *     router never knows the subscription's node names at conversion time.
  */
@@ -51,7 +53,7 @@ const UNMATCHED_PROBE = '未知节点A'
 const FAKEIP_RANGE6 = 'fdfe:dcba:9876::1/64'
 /** Desktop process names can never be matched by a router-side core. */
 const DROPPED_RULE_PREFIXES = ['PROCESS-NAME,']
-/** The catch-all must stay in OpenClash's own config, at the very end. */
+/** Without `--replace-rules` the catch-all stays in OpenClash's own config, at the very end. */
 const DROPPED_RULE_PREFIXES_TAIL = ['MATCH,']
 /**
  * The side router blocks ads through AWAvenue alone, so the source script's own geosite ad
@@ -64,14 +66,15 @@ const REGEX_CASELESS = '(?i)'
 /** mihomo adapter types that are groups rather than real proxy nodes. */
 const GROUP_TYPES = 'Selector|URLTest|Fallback|LoadBalance|Relay'
 /**
- * Appended to the source script's three auto-test group names (自动选择/故障转移/负载均衡).
- * Those bare names are exactly what subscription templates hand out themselves, and
- * `proxy-groups+` is a plain append -- OpenClash's deep merge never dedupes by name, so a
- * collision makes mihomo refuse to start with `Parse config error: ProxyGroup X: duplicate
- * group name`. Namespacing ours is the only fix that leaves the subscription's own groups
- * (and the subscriber's rules pointing at them) untouched.
+ * The name the source script gives its main selector, and the name the module publishes it
+ * under. Subscription templates -- this one included -- ship a selector called `节点选择` and
+ * their own rules (including the final `MATCH`) point at it. Because the module replaces the
+ * whole group tree with `proxy-groups!` (YAML.rb `!` is a force overwrite, not an append),
+ * there is no second selector left for those rules to fall back to, so the module takes the
+ * name over instead of adding another one next to it. On the desktop `默认节点` plays that role.
  */
-const AUTO_TEST_SUFFIX = '·模块'
+const SOURCE_MAIN_GROUP_NAME = '默认节点'
+const MAIN_GROUP_NAME = '节点选择'
 
 function usage() {
     const lines = [
@@ -85,7 +88,8 @@ function usage() {
         '  --ipv6 | --no-ipv6       emit only the dual-stack / only the IPv4-only module',
         '                           (default: both)',
         '  --regions=HK,JP,SG,US    region groups to generate, or ALL (default: all 20)',
-        '  --existing-groups=A,B    group names already defined by OpenClash, never redefined',
+        '  --replace-rules          emit `rules!` with the source script\'s whole rule list,',
+        '                           including its own final MATCH (default: prepend only)',
         '  --tun | --no-tun         emit the source script tun block (default: no-tun)',
         '  --sniffer | --no-sniffer emit the source script sniffer block (default: sniffer)',
         '  --geo-update | --no-geo-update',
@@ -112,10 +116,9 @@ function parseArgs(argv) {
         // Both variants unless `--ipv6` / `--no-ipv6` narrows the run to one.
         variants: VARIANTS.slice(),
         regions: DEFAULT_REGIONS.slice(),
-        // Group names the subscription (or OpenClash itself) already defines. The converter
-        // reuses those instead of emitting its own, which is the safe way out of a duplicate
-        // name: deleting the existing group would break whatever rule points at it.
-        existingGroups: [],
+        // Off by default: the module prepends its rules and lets OpenClash keep its own list
+        // (and the subscription's), so OpenClash's rule surgery stays meaningful.
+        replaceRules: false,
         tun: false,
         sniffer: true,
         // Off by default for the router module: mihomo's own updater would duplicate
@@ -135,10 +138,10 @@ function parseArgs(argv) {
         else if (arg === '--no-geo-update') options.geoUpdate = false
         else if (arg === '--tail-rules') options.tailRules = true
         else if (arg === '--no-tail-rules') options.tailRules = false
+        else if (arg === '--replace-rules') options.replaceRules = true
+        else if (arg === '--no-replace-rules') options.replaceRules = false
         else if (arg.startsWith('--regions=')) {
             options.regions = splitList(arg.slice('--regions='.length))
-        } else if (arg.startsWith('--existing-groups=')) {
-            options.existingGroups = splitList(arg.slice('--existing-groups='.length))
         } else if (arg === '-h' || arg === '--help') {
             usage()
             process.exit(0)
@@ -533,20 +536,38 @@ function filterRules(rules, options) {
             'GEOIP,cn,',
         ])
     }
-    return rules
-        .filter((rule) => !prefixes.some((prefix) => rule.startsWith(prefix)))
-        .filter((rule) => !DROPPED_RULE_PREFIXES_TAIL.some((prefix) => rule.startsWith(prefix)))
+    const kept = rules.filter((rule) => !prefixes.some((prefix) => rule.startsWith(prefix)))
+    // Staying in front of OpenClash's own list (`+rules`) means OpenClash's catch-all is what
+    // follows, so the source script's MATCH must not be emitted at all. A full takeover
+    // (`rules!`) needs it back: otherwise unmatched traffic would hit no rule at all.
+    if (options.replaceRules) return kept
+    return kept.filter((rule) => !DROPPED_RULE_PREFIXES_TAIL.some((prefix) => rule.startsWith(prefix)))
+}
+
+/**
+ * The source script points its own rules at the main selector it creates (`默认节点`). The
+ * module publishes that group under the name the subscription's rules already use, so every
+ * rule whose target is the source name has to be repointed at the published one.
+ */
+function retargetRules(rules) {
+    return rules.map((rule) => {
+        const parts = rule.split(',')
+        const last = parts.length - 1
+        if (parts[last].trim() === SOURCE_MAIN_GROUP_NAME) parts[last] = MAIN_GROUP_NAME
+        return parts.join(',')
+    })
 }
 
 function build(source, allRegions, regions, options) {
     const regionNames = regions.map((region) => region.name)
     const { config, autoTestGroups } = runSourceScript(source.path, regionNames)
 
-    // Namespace the source script's auto-test groups and rewrite every reference to them, so
-    // they can never clash with a group the subscription already ships (see AUTO_TEST_SUFFIX).
-    const renamed = new Map(
-        autoTestGroups.map((group) => [group.name, group.name + AUTO_TEST_SUFFIX]),
-    )
+    // The module replaces the subscription's whole group tree (`proxy-groups!`), so no name can
+    // collide and the source script's own names survive unchanged. The single exception is its
+    // main selector: the subscription's own rules -- including the final MATCH -- point at a
+    // group called `节点选择`, and that group is about to be wiped, so the source script's
+    // `默认节点` takes the name over instead of being published next to it.
+    const renamed = new Map([[SOURCE_MAIN_GROUP_NAME, MAIN_GROUP_NAME]])
     config['proxy-groups'] = (config['proxy-groups'] || []).map((group) => ({
         ...group,
         name: renamed.get(group.name) || group.name,
@@ -557,18 +578,15 @@ function build(source, allRegions, regions, options) {
 
     const regionByName = new Map(regions.map((region) => [region.name, region]))
     const allRegionNames = new Set(allRegions.map((region) => region.name))
-    const autoTestNames = new Set(autoTestGroups.map((group) => renamed.get(group.name)))
-    const existing = new Set(options.existingGroups)
+    const autoTestNames = new Set(
+        autoTestGroups.map((group) => renamed.get(group.name) || group.name),
+    )
 
     // The source script's region regexes overlap (新加坡 matches 加, so it also lands in
     // the Canada group). Anything it creates for a region we did not ask for is dropped
     // here, and the group-name references to it are pruned afterwards.
     const plan = []
     for (const group of config['proxy-groups'] || []) {
-        if (existing.has(group.name)) {
-            plan.push({ kind: 'kept', group })
-            continue
-        }
         if (allRegionNames.has(group.name) && !regionByName.has(group.name)) {
             plan.push({ kind: 'dropped', group })
             continue
@@ -580,7 +598,7 @@ function build(source, allRegions, regions, options) {
         plan.push({ kind, group })
     }
 
-    const emitted = plan.filter((entry) => entry.kind !== 'kept' && entry.kind !== 'dropped')
+    const emitted = plan.filter((entry) => entry.kind !== 'dropped')
     const emittedGroupNames = new Set(emitted.map((entry) => entry.group.name))
     // `其他节点` is the bucket for proxies the source script could not place in any region.
     // Exclude every region the source script knows about, not just the ones we generated, so
@@ -589,9 +607,7 @@ function build(source, allRegions, regions, options) {
     const knownRegionAlternation =
         REGEX_CASELESS + allRegions.map((region) => `(?:${region.regex.source})`).join('|')
 
-    const referenceable = new Set(
-        [...emittedGroupNames, ...existing, '直连', 'DIRECT', 'REJECT'].filter(Boolean),
-    )
+    const referenceable = new Set([...emittedGroupNames, '直连', 'DIRECT', 'REJECT'])
     const pruneProxies = (group) => {
         if (!Array.isArray(group.proxies)) return undefined
         return group.proxies.filter((name) => name !== group.name && referenceable.has(name))
@@ -613,15 +629,13 @@ function build(source, allRegions, regions, options) {
     out.push('    type: direct')
     out.push('    udp: true')
     out.push('')
-    out.push('# Groups and rules are appended / prepended: OpenClash keeps its own groups, its')
-    out.push('# own rule set and its own final MATCH.')
-    out.push('proxy-groups+:')
+    out.push('# The subscription\'s whole group tree is replaced, not extended: exactly one selector')
+    out.push('# tree ends up in the config, shaped like the desktop script\'s. The subscription\'s own')
+    out.push('# 节点选择/自动选择 would otherwise survive next to ours as a second, unmanaged tree --')
+    out.push('# and every rule that still points at them would ignore the module.')
+    out.push('proxy-groups!:')
 
     for (const { kind, group } of plan) {
-        if (kind === 'kept') {
-            groups.push(`${group.name} (kept from OpenClash)`)
-            continue
-        }
         if (kind === 'dropped') continue
         if (kind === 'other') {
             emitGroup(out, { ...group, proxies: pruneProxies(group) }, {
@@ -671,10 +685,16 @@ function build(source, allRegions, regions, options) {
         }
     })
 
-    const rules = filterRules(config.rules || [], options)
+    const rules = retargetRules(filterRules(config.rules || [], options))
     out.push('')
-    out.push('# Prepended to OpenClash\'s own rule list.')
-    out.push('+rules:')
+    if (options.replaceRules) {
+        out.push('# Replaces OpenClash\'s rule list: the subscription\'s own rules and OpenClash\'s')
+        out.push('# rule surgery (自定义规则 / BT / 路由自身规则 / smart) no longer apply.')
+        out.push('rules!:')
+    } else {
+        out.push('# Prepended to OpenClash\'s own rule list, which keeps its own final MATCH.')
+        out.push('+rules:')
+    }
     for (const rule of rules) out.push(`  - ${ruleScalar(rule)}`)
 
     return { text: out.toString(), groups, rules, providers }

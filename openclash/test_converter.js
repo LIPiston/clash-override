@@ -46,7 +46,7 @@ function run(text, extra = [], variant = 'v4') {
 }
 
 /**
- * Minimal reader for the generated `proxy-groups+` block, enough to check that
+ * Minimal reader for the generated `proxy-groups!` block, enough to check that
  * every group member actually exists.
  */
 /** The emitter single-quotes names it cannot write as a plain YAML scalar. */
@@ -61,11 +61,11 @@ function readGroups(text) {
     let inGroups = false
     let inProxies = false
     for (const line of text.split('\n')) {
-        if (/^proxy-groups\+:$/.test(line)) {
+        if (/^proxy-groups!:$/.test(line)) {
             inGroups = true
             continue
         }
-        if (/^(rule-providers|\+rules|\[YAML\]):?$/.test(line)) {
+        if (/^(rule-providers|\+rules|rules!|\[YAML\]):?$/.test(line)) {
             inGroups = false
             inProxies = false
             continue
@@ -178,8 +178,10 @@ assert.match(out, /^\[General\]$/m)
 assert.match(out, /^EN_MODE = fake-ip$/m)
 assert.match(out, /^\[YAML\]$/m)
 assert.match(out, /^proxies\+:$/m)
-assert.match(out, /^proxy-groups\+:$/m)
+assert.match(out, /^proxy-groups!:$/m, 'the group tree must be replaced, not appended')
+assert.doesNotMatch(out, /^proxy-groups\+:$/m, 'appending would leave a second selector tree behind')
 assert.match(out, /^\+rules:$/m)
+assert.doesNotMatch(out, /^rules!:$/m, 'taking the rule list over is opt-in')
 assert.doesNotMatch(out, /PROCESS-NAME,/, 'process rules cannot work on a router')
 assert.doesNotMatch(out, /^ {2}- MATCH,/m, 'the desktop MATCH would preempt OpenClash rules')
 assert.doesNotMatch(out, /^tun:$/m, 'the side router must not enable TUN by default')
@@ -250,9 +252,11 @@ const groups = checkReferences(out, 'default')
 assert.deepEqual(
     groups.map((group) => group.name),
     [
-        '默认节点', '国外AI', 'YouTube', 'Spotify', 'Pixiv', '国外社区', '游戏专用',
+        // The source script's main selector, published under the name the subscription's own
+        // rules (and OpenClash's own UI) already point at.
+        '节点选择', '国外AI', 'YouTube', 'Spotify', 'Pixiv', '国外社区', '游戏专用',
         '广告过滤', '苹果服务', '谷歌服务', 'Github', '微软服务', '下载软件',
-        '其他外网', '国内网站', '自动选择·模块', '故障转移·模块', '负载均衡·模块',
+        '其他外网', '国内网站', '自动选择', '故障转移', '负载均衡',
         // All 20 regions the source script knows about, in the source script's own order.
         'HK香港', 'US美国', 'JP日本', 'KR韩国', 'SG新加坡', 'CN中国大陆', 'TW台湾省',
         'GB英国', 'DE德国', 'MY马来西亚', 'TK土耳其', 'CA加拿大', 'FR法国', 'GR希腊',
@@ -260,20 +264,21 @@ assert.deepEqual(
         '其他节点',
     ],
 )
-const defaultNode = groups.find((group) => group.name === '默认节点')
-assert.ok(defaultNode.proxies.includes('自动选择·模块'))
-assert.ok(defaultNode.proxies.includes('直连'))
+const mainGroup = groups.find((group) => group.name === '节点选择')
+assert.ok(mainGroup.proxies.includes('自动选择'))
+assert.ok(mainGroup.proxies.includes('直连'))
 
-// The source script's bare auto-test names are the ones subscription templates hand out
-// themselves, and `proxy-groups+` appends without deduping, so emitting them made mihomo
-// refuse to start: Parse config error: ProxyGroup 自动选择: duplicate group name.
-// Ours are namespaced instead; shipping a bare name again would reintroduce that failure.
+// Replacing the tree makes a name collision impossible, so the source script's bare auto-test
+// names are emitted as they are. Appending them instead (`proxy-groups+`) is what used to make
+// mihomo refuse to start: Parse config error: ProxyGroup 自动选择: duplicate group name.
 for (const name of ['自动选择', '故障转移', '负载均衡']) {
-    assert.doesNotMatch(out, new RegExp(`^ {2}- name: '?${name}'?$`, 'm'), `${name} must stay namespaced`)
+    assert.match(out, new RegExp(`^ {2}- name: '?${name}'?$`, 'm'), `${name} must be emitted`)
 }
-for (const name of ['自动选择·模块', '故障转移·模块', '负载均衡·模块']) {
-    assert.match(out, new RegExp(`^ {2}- name: '${name}'$`, 'm'))
-}
+assert.doesNotMatch(out, /·模块/, 'the old namespace suffix must be gone')
+// Nothing may still call the main selector by the source script's own name: the subscription's
+// rules and OpenClash's UI expect `节点选择`, and our rules must be repointed at it.
+assert.doesNotMatch(out, /默认节点/, 'the source name must never reach the router config')
+assert.match(out, /,节点选择$/m, 'the source rules must be repointed at the published name')
 
 // Region groups select their members at runtime instead of hardcoding node names.
 const hongkong = groups.find((group) => group.name === 'HK香港')
@@ -320,16 +325,16 @@ const narrowOther = readGroups(out).find((group) => group.name === '其他节点
 assert.ok(narrowOther.excludeFilter.includes('荷'), 'catch-all excludes ungenerated regions too')
 
 // ---------------------------------------------------------------------------
-// 8. A group the subscription already defines is reused instead of redefined.
+// 8. Taking the rule list over as well is opt-in, and keeps the source MATCH.
 // ---------------------------------------------------------------------------
-out = run(source, ['--existing-groups=自动选择·模块'])
-assert.doesNotMatch(out, /^ {2}- name: '自动选择·模块'$/m)
-// The reference resolves against the group the subscription itself defines.
-checkReferences(out, 'existing-groups=自动选择·模块', ['自动选择·模块'])
-// A name the converter never emits is ignored rather than suppressing anything.
-out = run(source, ['--existing-groups=我的自建组'])
-assert.match(out, /^ {2}- name: '自动选择·模块'$/m)
-checkReferences(out, 'existing-groups=我的自建组', ['我的自建组'])
+out = run(source, ['--replace-rules'])
+assert.match(out, /^rules!:$/m, 'the takeover must force-replace the rule list')
+assert.doesNotMatch(out, /^\+rules:$/m)
+assert.match(out, /^ {2}- MATCH,其他外网$/m, 'a takeover needs the source catch-all back')
+checkReferences(out, 'replace-rules')
+out = run(source)
+assert.doesNotMatch(out, /^rules!:$/m)
+assert.doesNotMatch(out, /^ {2}- MATCH,/m, 'prepending leaves the catch-all to OpenClash')
 
 // ---------------------------------------------------------------------------
 // 9. IPv6 toggles both the UCI section and the YAML DNS block.

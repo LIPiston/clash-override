@@ -98,14 +98,14 @@ country code hk not found in geoip.dat
 
 ## OpenClash 旁路由模块
 
-同一条源脚本，转成 OpenClash 的覆写模块（纯追加语义，不替换 OpenClash 自己的策略组和兜底规则）：
+同一条源脚本，转成 OpenClash 的覆写模块（整棵策略组树替换掉订阅自带的：主选择器接管 `节点选择` 这个名字，模块的规则前置，OpenClash 自己的兜底 `MATCH` 因此落回模块的树）：
 
 ```bash
 node openclash/convert-global-script.js          # 同时生成纯 v4 与 v4+v6 两条
 ```
 
 - 按需收窄地区组：`--regions=HK,JP,SG,US,TW,KR`（订阅里没有节点的地区会解析成空组，mihomo 会拒绝启动）。
-- 订阅自己占了同名组名：`--existing-groups=其他节点,默认节点`，转换器就不再重复定义。
+- 连规则一起接管（放弃订阅自带规则与 OpenClash 的规则注入）：`--replace-rules`。
 - 完整参数表、生成物结构、与桌面端的逐条差异、路由器上的安装步骤：见 [openclash/README.md](openclash/README.md)。
 
 ## 改完之后
