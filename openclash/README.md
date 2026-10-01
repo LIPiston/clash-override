@@ -28,7 +28,7 @@ node openclash/test_converter.js
 | 参数 | 默认 | 说明 |
 | --- | --- | --- |
 | `--ipv6` / `--no-ipv6` | 两条都出 | 只出 `-v4v6`（v4+v6）或只出纯 v4。切换的是 `[General]` 的 `IPV6_ENABLE`/`IPV6_DNS`/`ENABLE_V6_UDP_PROXY`/`FAKEIP_RANGE6` 与 `[YAML]` 里的 `dns.ipv6`、`dns.fake-ip-range6`，其余内容两条完全一致 |
-| `--regions=HK,JP,SG,US` | 全部 20 个地区 | 生成哪些地区组，可写地区码或全名，`ALL` 表示源脚本里的全部 20 个 |
+| `--regions=HK,JP,SG,US` | 源脚本地区表去掉 `CN`（19 个） | 生成哪些地区组，可写地区码或全名，`ALL` 表示源脚本里的全部 20 个（含 `CN`） |
 | `--replace-rules` / `--no-replace-rules` | `--no-replace-rules` | 把整份规则表也换成源脚本自己的（`rules!`，含它自己的 `MATCH,其他外网`）。代价：订阅自带规则、OpenClash 的自定义规则/路由自身规则注入全部失效 |
 | `--tun` / `--no-tun` | `--no-tun` | 是否输出源脚本的 `tun` 块 |
 | `--sniffer` / `--no-sniffer` | `--sniffer` | 是否输出源脚本的 `sniffer` 块 |
@@ -52,9 +52,9 @@ node openclash/test_converter.js
 - **地区组改成动态**：桌面端是靠 JS 正则去匹配节点名、把成员写死；模块改用 `include-all: true` + `filter`（源脚本的地区正则）+ `exclude-type`（排除策略组，避免自环）。订阅换节点名也不用重新生成模块。
 - **地区组不看倍率**：桌面端静态轮里 `ratioLimit`（默认 5）确实会挡掉高倍率节点，但它后面的 `autoDetect` 完全不看倍率、按国家码把那些节点又塞回地区组（`existingGroup.proxies.push(n)`），净效果是倍率对地区组不起作用。所以模块的地区组**不带**倍率 `exclude-filter` —— 带上反而更不准：那些节点会被地区正则挡在 `其他节点` 之外、又进不了地区组，变成哪个组都不在。整份模块现在只剩 `其他节点` 一处 `exclude-filter`（排除全部 20 个地区用的）。
 - **地区正则补上 `(?i)`**：源脚本的地区正则是 `/i` 的，转成 Go 正则时必须写成 `(?i)…`，否则 `Hong Kong`、`Japan` 这类大小写混排的节点名匹配不上，会整组漏进 `其他节点`（甚至让某个地区组变空）。
-- **默认生成全部 20 个地区组**：与桌面端一致，顺序也照源脚本的地区表。代价是某个地区在订阅里确实没有节点时，该组会解析成空组，mihomo 会以 `proxy group [X] has no proxies` 拒绝启动 —— 用 `--regions=HK,JP,SG,US,TW,KR` 收窄即可。
+- **默认生成 19 个地区组**：源脚本地区表去掉 `CN`（中国大陆 不单独出组），顺序其余照源脚本。代价是某个地区在订阅里确实没有节点时，该组会解析成空组，mihomo 会以 `proxy group [X] has no proxies` 拒绝启动 —— 用 `--regions=HK,JP,SG,US,TW,KR` 收窄即可。
 - **整棵策略组树替换掉订阅自带的**：模块用 `proxy-groups!`（YAML.rb 的强覆写）发布完整一棵树，并把源脚本的主选择器 `默认节点` 改用订阅规则已经在引用的名字 `节点选择` 发布出去 —— 订阅自己的 42 条规则（含末尾 `MATCH,节点选择`）因此继续有效，路由器上只剩一棵选择器树。三条自动测试组直接用源脚本的裸名字 `自动选择` / `故障转移` / `负载均衡`：既然整份 `proxy-groups` 被替换，就不可能再撞名。（早先用的是 `proxy-groups+` 纯追加，OpenClash 的深度合并不按组名去重，撞名时 mihomo 以 `Parse config error: ProxyGroup 自动选择: duplicate group name` 拒绝启动，才需要加 `·模块` 后缀区分。）`默认节点` 这个名字现在不会出现在产物里，回归测试会断言这一点。
-- **`其他节点` 只收「匹配不到任何地区」的节点**：它的 `exclude-filter` 用的是源脚本地区表里**全部 20 个地区**的正则并集（同样带 `(?i)`），而不是只排除本次生成的地区。默认 20 个组全生成时它就是纯兜底组；用 `--regions=` 收窄后，未生成地区的节点也不会混进来 —— 它们仍然能从 `节点选择` → `其他节点` 里选到，只是不进任何地区组。顺带修掉了源脚本里主选择器 ↔ `其他节点` 的互相引用：`其他节点` 不再把主选择器列成成员（`global_script.js` 的 `selectableProxyGroupNames.filter((x) => x !== '其他节点' && x !== '默认节点')`），因为主选择器本来就把 `其他节点` 当成员，互指会被 mihomo 判成 `Parse config error: loop is detected in ProxyGroup, please check following ProxyGroups: [默认节点 其他节点]`。主选择器 → `其他节点` 这条单向边保留，所以兜底节点仍然能从主选择器里选到；回归测试现在会对每个生成结果做一遍深度优先环路检测。
+- **`其他节点` 只收「匹配不到任何地区」的节点**：它的 `exclude-filter` 用的是源脚本地区表里**全部 20 个地区**的正则并集（同样带 `(?i)`），而不是只排除本次生成的地区。默认 19 个组全生成时它就是纯兜底组；用 `--regions=` 收窄后，未生成地区的节点也不会混进来 —— 包括 `CN` 这种默认不出组的地区：它们的节点仍然在 `自动选择` / `故障转移` / `负载均衡`（`include-all`、不做地区过滤）里参与测速与选择，只是没有专属选项。顺带修掉了源脚本里主选择器 ↔ `其他节点` 的互相引用：`其他节点` 不再把主选择器列成成员（`global_script.js` 的 `selectableProxyGroupNames.filter((x) => x !== '其他节点' && x !== '默认节点')`），因为主选择器本来就把 `其他节点` 当成员，互指会被 mihomo 判成 `Parse config error: loop is detected in ProxyGroup, please check following ProxyGroups: [默认节点 其他节点]`。主选择器 → `其他节点` 这条单向边保留，所以兜底节点仍然能从主选择器里选到；回归测试现在会对每个生成结果做一遍深度优先环路检测。
 - **广告只走 AWAvenue**：模块里删掉了源脚本自带的两层广告拦截 —— 规则层的 `GEOSITE,category-ads-all,广告过滤` 与 DNS 层的 `nameserver-policy: 'geosite:category-ads-all': 'rcode://success'`（广告域名照常解析，不再被 `rcode://success` 短路），只保留 `AWAvenue-Ads-Rule` 这个 `behavior: classical` 的 YAML 规则集 + `广告过滤` 组。桌面端两层都保留。
 - **`跟踪分析` 组整个删掉了**：源脚本里的 `GEOSITE,tracker,跟踪分析` 规则和 `跟踪分析` 选择组已从 `global_script.js` 移除 —— AWAvenue-Ads-Rule 本身已经收录跟踪/分析域名（规则层的 `RULE-SET,AWAvenue-Ads-Rule,广告过滤` 会兜住），而且不少路由器自带的 GeoSite.dat 没有 `tracker` 这个分类，留着会让 mihomo 以 `list tracker not found in GeoSite.dat` 直接拒绝启动。桌面端和模块都跟着源脚本一起不再生成，所以这不是「差异」，是两边同时去掉。
 - **`lipiston` 改成本地文件**：`type: file` + `path: ./rule_provider/lipiston.yaml`，不从 GitHub 拉自己的规则集。

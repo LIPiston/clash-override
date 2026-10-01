@@ -186,7 +186,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -222,7 +221,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -258,7 +256,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -294,7 +291,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -330,7 +326,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -366,7 +361,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -402,7 +396,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -440,7 +433,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -475,7 +467,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -511,7 +502,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -547,7 +537,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -583,7 +572,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -621,7 +609,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -656,7 +643,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -693,7 +679,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国
@@ -815,19 +800,6 @@ proxy-groups!:
     max-failed-times: 3
     hidden: false
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Singapore.png'
-  - name: CN中国大陆
-    type: url-test
-    include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
-    filter: '(?i)中国|🇨🇳|cn|CN|china|CHINA'
-    url: 'https://www.gstatic.com/generate_204'
-    interval: 240
-    timeout: 3000
-    tolerance: 100
-    lazy: false
-    max-failed-times: 3
-    hidden: false
-    icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/China_Map.png'
   - name: TW台湾省
     type: url-test
     include-all: true
@@ -1024,7 +996,6 @@ proxy-groups!:
       - JP日本
       - KR韩国
       - SG新加坡
-      - CN中国大陆
       - TW台湾省
       - GB英国
       - DE德国

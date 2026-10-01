@@ -38,13 +38,14 @@ const VARIANTS = [
     { name: 'v4', suffix: '', ipv6: false },
 ]
 /**
- * Region groups emitted for the side router. Mirrors the source script's whole region table,
- * in the source script's own order, so the module ends up as detailed as the desktop config.
- * Narrow it with `--regions=` when the subscription has no nodes for a region: mihomo refuses
- * to start a group that resolves to zero proxies.
+ * Region groups emitted for the side router. Mirrors the source script's region table, in the
+ * source script's own order, so the module ends up as detailed as the desktop config. `CN` is
+ * deliberately left out: 中国大陆 is not exposed as a region group on this router. Narrow the
+ * rest with `--regions=` when the subscription has no nodes for a region: mihomo refuses to
+ * start a group that resolves to zero proxies.
  */
 const DEFAULT_REGIONS = [
-    'HK', 'US', 'JP', 'KR', 'SG', 'CN', 'TW', 'GB', 'DE', 'MY',
+    'HK', 'US', 'JP', 'KR', 'SG', 'TW', 'GB', 'DE', 'MY',
     'TK', 'CA', 'FR', 'GR', 'LT', 'MK', 'NL', 'PL', 'SE', 'AR',
 ]
 /** A name that matches no region regex, used to force the `其他节点` group to exist. */
