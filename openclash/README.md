@@ -18,9 +18,9 @@ OpenClash 不执行 Clash Verge Rev / Mihomo Party 的 JavaScript 全局脚本�
 - `[YAML]`：合并 DNS、Fake-IP、运行参数、策略组和规则；
 - 规则使用 OpenClash 支持的本地 `rule-provider` 和数组前置追加操作符 `+rules`。
 
-旁路由版本不启用 TUN，避免与上游主路由的网关转发重复接管；保留 Fake-IP + Rule，并启用旁路网关兼容、代理服务器地址绕过和 IPv6。脚本 A 默认启用 IPv6，也可用 `--no-ipv6` 关闭。IPv6 使用 `IPV6_MODE = 0`（TProxy），并设置 `FAKEIP_RANGE6 = fdfe:dcba:9876::1/64`。
+旁路由版本不启用 TUN，避免与上游主路由的网关转发重复接管；保留 Fake-IP + Rule，并启用旁路网关兼容和代理服务器地址绕过。当前部署版本使用 IPv4-only：脚本 A 可用 `--no-ipv6` 关闭 IPv6；只有上游提供 IPv6-PD、默认路由和正确回程时才使用 `--ipv6`。
 
-根据 OpenClash 指南，旁路由 IPv6 还需要：客户端默认 IPv6 网关指向旁路由；旁路由不要同时向 LAN 发送另一套 RA/DHCPv6；如果上游不能回程客户端地址，再单独评估 NAT66。仅写入覆写模块不会改变这些网络前提。
+根据 OpenClash 指南，旁路由 IPv6 还需要：客户端默认 IPv6 网关指向旁路由；旁路由不要同时向 LAN 发送另一套 RA/DHCPv6；如果上游不能回程客户端地址，再单独评估 NAT66。仅写入覆写模块不会改变这些网络前提。OpenClash 自带 GeoSite 数据不一定包含桌面脚本使用的自定义分类，因此 AI 规则使用本地域名规则，避免依赖 `GEOSITE,ai`；同理不生成当前 GeoSite.dat 不包含的 `GEOSITE,tracker`。
 
 ## Bash 转换
 

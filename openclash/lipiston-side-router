@@ -7,11 +7,10 @@ INTRANET_ALLOWED = 1
 BYPASS_GATEWAY_COMPATIBLE = 1
 ROUTER_SELF_PROXY = 1
 SKIP_PROXY_ADDRESS = 1
-IPV6_ENABLE = 1
-IPV6_DNS = 1
+IPV6_ENABLE = 0
+IPV6_DNS = 0
 IPV6_MODE = 0
-ENABLE_V6_UDP_PROXY = 1
-FAKEIP_RANGE6 = fdfe:dcba:9876::1/64
+ENABLE_V6_UDP_PROXY = 0
 DISABLE_UDP_QUIC = 1
 STORE_FAKEIP = 1
 ENABLE_TCP_CONCURRENT = 1
@@ -23,8 +22,7 @@ dns:
   enable: true
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
-  ipv6: true
-  fake-ip-range6: fdfe:dcba:9876::1/64
+  ipv6: false
   respect-rules: true
 profile:
   store-fake-ip: true
@@ -124,7 +122,15 @@ rule-providers:
   - DOMAIN-KEYWORD,postman,默认节点
   - DOMAIN-KEYWORD,stripchat,默认节点
   - DOMAIN-KEYWORD,qbittorrent,默认节点
-  - GEOSITE,ai,国外AI
+  - DOMAIN-SUFFIX,grazie.ai,国外AI
+  - DOMAIN-SUFFIX,grazie.aws.intellij.net,国外AI
+  - DOMAIN-SUFFIX,openai.com,国外AI
+  - DOMAIN-SUFFIX,chatgpt.com,国外AI
+  - DOMAIN-SUFFIX,anthropic.com,国外AI
+  - DOMAIN-SUFFIX,claude.ai,国外AI
+  - DOMAIN-SUFFIX,gemini.google.com,国外AI
+  - DOMAIN-SUFFIX,ai.google.dev,国外AI
+  - DOMAIN-SUFFIX,copilot.microsoft.com,国外AI
   - GEOSITE,youtube,YouTube
   - GEOSITE,spotify,Spotify
   - GEOSITE,pixiv,Pixiv
@@ -134,8 +140,6 @@ rule-providers:
   - GEOSITE,category-games@cn,国内网站
   - GEOSITE,steam,游戏专用
   - GEOSITE,category-games,游戏专用
-  - GEOSITE,tracker,跟踪分析
-  - GEOSITE,category-ads-all,广告过滤
   - GEOSITE,apple-cn,苹果服务
   - GEOSITE,google,谷歌服务
   - GEOSITE,github,Github

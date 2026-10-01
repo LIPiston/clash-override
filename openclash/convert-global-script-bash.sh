@@ -107,8 +107,18 @@ SKIP_PROXY_ADDRESS = 1
 IPV6_ENABLE = $IPV6_ENABLE
 IPV6_DNS = $IPV6_DNS
 IPV6_MODE = 0
+EOF
+if [[ "$IPV6" == 1 ]]; then
+    cat >> "$OUTPUT" <<'EOF'
 ENABLE_V6_UDP_PROXY = 1
 FAKEIP_RANGE6 = fdfe:dcba:9876::1/64
+EOF
+else
+    cat >> "$OUTPUT" <<'EOF'
+ENABLE_V6_UDP_PROXY = 0
+EOF
+fi
+cat >> "$OUTPUT" <<EOF
 DISABLE_UDP_QUIC = 1
 STORE_FAKEIP = 1
 ENABLE_TCP_CONCURRENT = 1
@@ -120,7 +130,7 @@ dns:
   enable: true
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
-  ipv6: $IPV6_YAML
+  ipv6: ${IPV6_YAML}
 EOF
 if [[ "$IPV6" == 1 ]]; then
     cat >> "$OUTPUT" <<'EOF'
@@ -204,7 +214,19 @@ done < "$RULES_TMP"
 add_geosite() {
     [[ "$(feature_enabled "$1")" == 0 ]] || printf '  - GEOSITE,%s,%s\n' "$2" "$3" >> "$OUTPUT"
 }
-add_geosite openai ai 国外AI
+# The installed GeoSite.dat does not provide the source script's custom `ai`
+# category. Keep the AI rule local so startup does not depend on that list.
+if [[ "$(feature_enabled openai)" != 0 ]]; then
+    printf '  - DOMAIN-SUFFIX,grazie.ai,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,grazie.aws.intellij.net,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,openai.com,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,chatgpt.com,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,anthropic.com,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,claude.ai,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,gemini.google.com,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,ai.google.dev,国外AI\n' >> "$OUTPUT"
+    printf '  - DOMAIN-SUFFIX,copilot.microsoft.com,国外AI\n' >> "$OUTPUT"
+fi
 add_geosite youtube youtube YouTube
 add_geosite spotify spotify Spotify
 add_geosite pixiv pixiv Pixiv
@@ -214,8 +236,11 @@ add_geosite community twitter 国外社区
 add_geosite games 'category-games@cn' 国内网站
 add_geosite games steam 游戏专用
 add_geosite games category-games 游戏专用
-add_geosite tracker tracker 跟踪分析
-add_geosite ads category-ads-all 广告过滤
+# `tracker` is not a list in the installed GeoSite.dat. Keep its strategy
+# group for manual use, but do not emit an invalid rule.
+# `category-ads-all` is present in GeoSite.dat but is too memory-heavy for
+# this 512 MiB router when loaded together with the subscription. Keep the
+# group for manual use and omit the automatic rule/provider.
 add_geosite apple apple-cn 苹果服务
 add_geosite google google 谷歌服务
 add_geosite github github Github

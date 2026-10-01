@@ -20,13 +20,13 @@ const changed = source.replace("domainSuffix: ['warframe.com'", "domainSuffix: [
 let out = run(changed);
 assert.ok(out.includes('DOMAIN-SUFFIX,converter-new.example,DIRECT'), 'new multiline source rule was not converted');
 assert.ok(out.includes('IP-CIDR,100.64.0.0/10,DIRECT'));
-assert.ok(out.includes('GEOSITE,ai,国外AI'), 'AI feature switch must be converted to a geosite rule');
+assert.ok(out.includes('DOMAIN-SUFFIX,openai.com,国外AI'), 'AI feature switch must be converted to a local domain rule');
 assert.ok(out.includes('IPV6_ENABLE = 1'));
 assert.ok(out.includes('IPV6_DNS = 1'));
 assert.ok(!out.includes('PROCESS-NAME,'));
 assert.ok(!out.includes('MATCH,'));
 out = run(source.replace('openai: true', 'openai: false'), ['--no-ipv6']);
-assert.ok(!out.includes('RULE-SET,ai,国外AI'));
+assert.ok(!out.includes('DOMAIN-SUFFIX,openai.com,国外AI'));
 assert.ok(out.includes('IPV6_ENABLE = 0'));
 assert.ok(!out.includes('fake-ip-range6: fdfe'));
 console.log('PASS: source mutation, multiline rules, providers, feature switch, process/MATCH exclusion, IPv6 toggle');
