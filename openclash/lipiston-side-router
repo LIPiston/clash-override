@@ -702,7 +702,8 @@ proxy-groups!:
   - name: 自动选择
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -714,7 +715,8 @@ proxy-groups!:
   - name: 故障转移
     type: fallback
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -725,7 +727,8 @@ proxy-groups!:
   - name: 负载均衡
     type: load-balance
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -736,8 +739,9 @@ proxy-groups!:
   - name: HK香港
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)港|香港|HONG KONG|HONGKONG|hk|HK|hongkong|hong kong'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -749,8 +753,9 @@ proxy-groups!:
   - name: US美国
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)美|🇺🇸|us|USA|usa|US|united state|UNITED STATE|america|America|AMERICA'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -762,8 +767,9 @@ proxy-groups!:
   - name: JP日本
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)日|日本|JP|Jp|🇯🇵|jp|japan|JAPAN|iij'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -775,8 +781,9 @@ proxy-groups!:
   - name: KR韩国
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)韩|韩国|kr|KR|korea|KOREA'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -788,8 +795,9 @@ proxy-groups!:
   - name: SG新加坡
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)新加坡|🇸🇬|sg|SG|singapore|SINGAPORE'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -801,8 +809,9 @@ proxy-groups!:
   - name: TW台湾省
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)台湾|🇹🇼|tw|TW|taiwan|tai wan|TAIWAN|TAI WAN'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -814,8 +823,9 @@ proxy-groups!:
   - name: GB英国
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)英|uk|UK|united kingdom|great britain'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -827,8 +837,9 @@ proxy-groups!:
   - name: DE德国
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)德国|de|DE|germany'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -840,8 +851,9 @@ proxy-groups!:
   - name: MY马来西亚
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)马来|my|MY|malaysia'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -853,8 +865,9 @@ proxy-groups!:
   - name: TK土耳其
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)土耳其|tk|TK|tr|TR|turkey'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -866,8 +879,9 @@ proxy-groups!:
   - name: CA加拿大
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)加|加拿大|ca|CA|canada|CANADA|CAN'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -879,8 +893,9 @@ proxy-groups!:
   - name: FR法国
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)法|法国|fr|FR|france|FRANCE|FRA'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -892,8 +907,9 @@ proxy-groups!:
   - name: GR希腊
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)希|希腊|gr|GR|greece|GREECE|GRC'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -905,8 +921,9 @@ proxy-groups!:
   - name: LT立陶宛
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)立陶宛|lt|LT|lithuania|LITHUANIA|LTU'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -918,8 +935,9 @@ proxy-groups!:
   - name: MK北马其顿
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)北马其顿|马其顿|mk|MK|macedonia|MACEDONIA|MKD'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -931,8 +949,9 @@ proxy-groups!:
   - name: NL荷兰
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)荷|荷兰|nl|NL|netherlands|NETHERLANDS|holland|HOLLAND|NLD'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -944,8 +963,9 @@ proxy-groups!:
   - name: PL波兰
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)波|波兰|pl|PL|poland|POLAND|POL'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -957,8 +977,9 @@ proxy-groups!:
   - name: SE瑞典
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)瑞典|sweden|stockholm|🇸🇪'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -970,8 +991,9 @@ proxy-groups!:
   - name: AR阿根廷
     type: url-test
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
     filter: '(?i)阿根廷|🇦🇷|argentina'
+    exclude-filter: '(?i)(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
     url: 'https://www.gstatic.com/generate_204'
     interval: 240
     timeout: 3000
@@ -983,8 +1005,8 @@ proxy-groups!:
   - name: 其他节点
     type: select
     include-all: true
-    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay'
-    exclude-filter: '(?i)(?:港|香港|HONG KONG|HONGKONG|hk|HK|hongkong|hong kong)|(?:美|🇺🇸|us|USA|usa|US|united state|UNITED STATE|america|America|AMERICA)|(?:日|日本|JP|Jp|🇯🇵|jp|japan|JAPAN|iij)|(?:韩|韩国|kr|KR|korea|KOREA)|(?:新加坡|🇸🇬|sg|SG|singapore|SINGAPORE)|(?:中国|🇨🇳|cn|CN|china|CHINA)|(?:台湾|🇹🇼|tw|TW|taiwan|tai wan|TAIWAN|TAI WAN)|(?:英|uk|UK|united kingdom|great britain)|(?:德国|de|DE|germany)|(?:马来|my|MY|malaysia)|(?:土耳其|tk|TK|tr|TR|turkey)|(?:加|加拿大|ca|CA|canada|CANADA|CAN)|(?:法|法国|fr|FR|france|FRANCE|FRA)|(?:希|希腊|gr|GR|greece|GREECE|GRC)|(?:立陶宛|lt|LT|lithuania|LITHUANIA|LTU)|(?:北马其顿|马其顿|mk|MK|macedonia|MACEDONIA|MKD)|(?:荷|荷兰|nl|NL|netherlands|NETHERLANDS|holland|HOLLAND|NLD)|(?:波|波兰|pl|PL|poland|POLAND|POL)|(?:瑞典|sweden|stockholm|🇸🇪)|(?:阿根廷|🇦🇷|argentina)'
+    exclude-type: 'Selector|URLTest|Fallback|LoadBalance|Relay|Direct|Compatible|Pass'
+    exclude-filter: '(?i)(?:港|香港|HONG KONG|HONGKONG|hk|HK|hongkong|hong kong)|(?:美|🇺🇸|us|USA|usa|US|united state|UNITED STATE|america|America|AMERICA)|(?:日|日本|JP|Jp|🇯🇵|jp|japan|JAPAN|iij)|(?:韩|韩国|kr|KR|korea|KOREA)|(?:新加坡|🇸🇬|sg|SG|singapore|SINGAPORE)|(?:中国|🇨🇳|cn|CN|china|CHINA)|(?:台湾|🇹🇼|tw|TW|taiwan|tai wan|TAIWAN|TAI WAN)|(?:英|uk|UK|united kingdom|great britain)|(?:德国|de|DE|germany)|(?:马来|my|MY|malaysia)|(?:土耳其|tk|TK|tr|TR|turkey)|(?:加|加拿大|ca|CA|canada|CANADA|CAN)|(?:法|法国|fr|FR|france|FRANCE|FRA)|(?:希|希腊|gr|GR|greece|GREECE|GRC)|(?:立陶宛|lt|LT|lithuania|LITHUANIA|LTU)|(?:北马其顿|马其顿|mk|MK|macedonia|MACEDONIA|MKD)|(?:荷|荷兰|nl|NL|netherlands|NETHERLANDS|holland|HOLLAND|NLD)|(?:波|波兰|pl|PL|poland|POLAND|POL)|(?:瑞典|sweden|stockholm|🇸🇪)|(?:阿根廷|🇦🇷|argentina)|(?:(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth))'
     proxies:
       - 自动选择
       - 故障转移

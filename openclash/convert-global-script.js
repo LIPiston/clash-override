@@ -65,7 +65,33 @@ const DROPPED_ADS_DNS_POLICY = 'geosite:category-ads-all'
 /** The source script's region regexes are case-insensitive; Go regexes need the flag inline. */
 const REGEX_CASELESS = '(?i)'
 /** mihomo adapter types that are groups rather than real proxy nodes. */
-const GROUP_TYPES = 'Selector|URLTest|Fallback|LoadBalance|Relay'
+const GROUP_TYPES_BASE = 'Selector|URLTest|Fallback|LoadBalance|Relay'
+/**
+ * `include-all: true` sweeps in *every* adapter of the final config, not just the subscription's
+ * real nodes. Two kinds of non-node get caught:
+ *
+ *   - the module's own `直连` (a `Direct` adapter, published through `proxies+`), and
+ *   - the quota/expiry meta nodes a subscription injects (`🇦🇱 套餐到期：…`).
+ *
+ * The desktop script never has either in a group: it filters `config.proxies` through
+ * `isSafeProxy` + `FAKE_NODE_REGEX` *before* building groups, and `直连` is appended to
+ * `config.proxies` only *after* the auto groups were built from it. With `include-all` that
+ * ordering no longer protects anything, and `直连` is not merely noise: mihomo health-checks it
+ * against the very URL the group tests (`gstatic.com/generate_204` answers 204 through the
+ * proxy's own DNS), so a `url-test` group scores it fastest and elects it. Every group pointing
+ * at that selector then goes direct without anyone noticing -- on this router `节点选择` →
+ * `自动选择` → `直连` meant Google/YouTube/Apple/Microsoft traffic never left the LAN.
+ *
+ * So `exclude-type` carries the direct adapters too, and `exclude-filter` mirrors the source
+ * script's fake-node regex. `Reject`/`REJECT` cannot appear here: they are not entries of the
+ * `proxies` list that `include-all` walks.
+ */
+const DIRECT_TYPES = 'Direct|Compatible|Pass'
+const GROUP_TYPES = `${GROUP_TYPES_BASE}|${DIRECT_TYPES}`
+/** Mirrors `FAKE_NODE_REGEX` in global_script.js; Go regexes take the flag inline. */
+const FAKE_NODE_BODY =
+    '(?:套餐|流量|剩余|已用|重置|到期|过期|续费|订阅|官网|公告|签到|邀请|工单|客服|使用量|traffic|usage|expire|expiry|renew|subscription|announce|notice|quota|bandwidth)'
+const FAKE_NODE_FILTER = REGEX_CASELESS + FAKE_NODE_BODY
 /**
  * The name the source script gives its main selector, and the name the module publishes it
  * under. Subscription templates -- this one included -- ship a selector called `节点选择` and
@@ -486,16 +512,33 @@ function emitRuntime(out, jsConfig, options) {
     }
 }
 
+/**
+ * `include-all` cannot be filtered by the source script's own `config.proxies` pruning, so the
+ * fake-node regex has to be enforced here as well. An existing `exclude-filter` (the region
+ * alternation `其他节点` uses) is OR-ed with it rather than replaced, and the single `(?i)` stays
+ * at the front so it covers both branches.
+ */
+function withFakeNodeFilter(existing) {
+    if (!existing) return FAKE_NODE_FILTER
+    const core = existing.startsWith(REGEX_CASELESS) ? existing.slice(REGEX_CASELESS.length) : existing
+    return `${REGEX_CASELESS}${core}|(?:${FAKE_NODE_BODY})`
+}
+
 function emitGroup(out, group, extra) {
     // `- name:` starts a block mapping whose keys must line up under `name` (indent 4).
     out.push(`  - name: ${scalar(group.name)}`)
     out.entry(4, 'type', group.type)
+    // `include-all` groups get both exclusions unconditionally; groups with a static `proxies`
+    // list are already pruned through `pruneProxies` and need neither.
+    const excludeFilter = extra.includeAll
+        ? withFakeNodeFilter(extra.excludeFilter)
+        : extra.excludeFilter
     if (extra.includeAll) {
         out.entry(4, 'include-all', true)
         out.entry(4, 'exclude-type', GROUP_TYPES)
     }
     if (extra.filter) out.entry(4, 'filter', extra.filter)
-    if (extra.excludeFilter) out.entry(4, 'exclude-filter', extra.excludeFilter)
+    if (excludeFilter) out.entry(4, 'exclude-filter', excludeFilter)
     if (group.proxies) out.list(4, 'proxies', group.proxies)
     for (const key of ['url', 'interval', 'timeout', 'tolerance', 'lazy', 'max-failed-times', 'hidden']) {
         if (group[key] === undefined) continue
