@@ -507,7 +507,7 @@ const defaultCustomRules = {
     direct: {
         target: 'DIRECT',
         domainSuffix: ['warframe.com', 'prlrr.com', 'g5air.com', 'qslk.net', 'darensoft.com', 'gzankun.com', 'iydsj.com'],
-        domainKeyword: ['audiences', 'rlzy', 'rsxt', 'g5air', 'lipiston', 'tailscale'],
+        domainKeyword: ['audiences', 'rlzy', 'rsxt', 'g5air', 'tailscale'],
         domain: ['h1.gzankun.com'],
         processName: [
             'SunloginClient', 'SunloginClient.exe', 'AnyDesk', 'AnyDesk.exe', 'RustDesk', 'RustDesk.exe', 'BaoMiHua.exe',
