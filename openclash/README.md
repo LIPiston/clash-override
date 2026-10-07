@@ -9,7 +9,7 @@
 - `lipiston-side-router-v4v6`：**v4+v6** 产物，两条只差 IPv6 开关。
 - `lipiston-side-router.sha256`：源脚本与两条产物的校验和，改完记得同步。
 - `test_converter.js`：转换器回归测试。
-- `../ruleset/lipiston.yaml`：个人直连规则集，模块把它注册为本地 `rule-provider`。
+- `../ruleset/lipiston.yaml`：个人直连规则集。模块把它注册成**在线** `rule-provider`（`type: http`，url 指向仓库里的这份文件），路由器上那份文件只是拉取失败时的兜底副本。
 
 ## 用法
 
@@ -62,7 +62,7 @@ node openclash/test_converter.js
 - **`其他节点` 只收「匹配不到任何地区」的节点**：它的 `exclude-filter` 用的是源脚本地区表里**全部 20 个地区**的正则并集（同样带 `(?i)`），而不是只排除本次生成的地区。默认 19 个组全生成时它就是纯兜底组；用 `--regions=` 收窄后，未生成地区的节点也不会混进来 —— 包括 `CN` 这种默认不出组的地区：它们的节点仍然在 `自动选择` / `故障转移` / `负载均衡`（`include-all`、不做地区过滤）里参与测速与选择，只是没有专属选项。顺带修掉了源脚本里主选择器 ↔ `其他节点` 的互相引用：`其他节点` 不再把主选择器列成成员（`global_script.js` 的 `selectableProxyGroupNames.filter((x) => x !== '其他节点' && x !== '默认节点')`），因为主选择器本来就把 `其他节点` 当成员，互指会被 mihomo 判成 `Parse config error: loop is detected in ProxyGroup, please check following ProxyGroups: [默认节点 其他节点]`。主选择器 → `其他节点` 这条单向边保留，所以兜底节点仍然能从主选择器里选到；回归测试现在会对每个生成结果做一遍深度优先环路检测。
 - **广告只走 AWAvenue**：模块里删掉了源脚本自带的两层广告拦截 —— 规则层的 `GEOSITE,category-ads-all,广告过滤` 与 DNS 层的 `nameserver-policy: 'geosite:category-ads-all': 'rcode://success'`（广告域名照常解析，不再被 `rcode://success` 短路），只保留 `AWAvenue-Ads-Rule` 这个 `behavior: classical` 的 YAML 规则集 + `广告过滤` 组。桌面端两层都保留。
 - **`跟踪分析` 组整个删掉了**：源脚本里的 `GEOSITE,tracker,跟踪分析` 规则和 `跟踪分析` 选择组已从 `global_script.js` 移除 —— AWAvenue-Ads-Rule 本身已经收录跟踪/分析域名（规则层的 `RULE-SET,AWAvenue-Ads-Rule,广告过滤` 会兜住），而且不少路由器自带的 GeoSite.dat 没有 `tracker` 这个分类，留着会让 mihomo 以 `list tracker not found in GeoSite.dat` 直接拒绝启动。桌面端和模块都跟着源脚本一起不再生成，所以这不是「差异」，是两边同时去掉。
-- **`lipiston` 改成本地文件**：`type: file` + `path: ./rule_provider/lipiston.yaml`，不从 GitHub 拉自己的规则集。
+- **`lipiston` 是在线规则集，本地文件只作兜底**：源脚本给它的是 `type: http` + `url`，模块只把 `path` 改到 `./rule_provider/`，`type` 与 `url` 原样保留。**`type: file` 是错的**：mihomo 对 `file` provider 只读 `path`，会把 `url` 整个忽略、永不刷新 —— 在线规则集在路由器上会一直停在首次复制的那一份（实测：`type: file` + `url` 同时存在时，本机 `/etc/openclash/clash`（`alpha-ge183c58`）加载后既不请求也不改动 `path` 指向的文件）。改成 `http` 之后两件事同时成立：按 `interval` 拉取上游，拉不到就继续用本地那份（只有本地文件也缺失时才会以 `initial rule provider lipiston error` 拒绝启动；`clash -t` 测试配置本身不下载）。所以安装时仍要把 `ruleset/lipiston.yaml` 复制到 `/etc/openclash/rule_provider/`，但它的角色从"唯一来源"变成"首次启动/离线兜底"。
 - **其余 rule-providers 的 `path` 改到 `./rule_provider/`**：那是 OpenClash 的 rule-provider 目录。
 - **默认发布纯 v4，同时附一条 v4+v6**：旁路由的 IPv6 需要上游提供 IPv6-PD、默认路由和正确回程，条件不满足就不要开，所以默认装到路由器上的 `lipiston-side-router` 是纯 v4；同一个源脚本开 IPv6 的那条叫 `lipiston-side-router-v4v6`，条件具备时换上去即可（两条只差 IPv6 开关）。按 OpenClash 指南，还需要客户端默认 IPv6 网关指向旁路由、旁路由不要同时向 LAN 发另一套 RA/DHCPv6；上游不能回程客户端地址时再单独评估 NAT66。仅写入覆写模块不会改变这些网络前提。
 - **模块固定 mmdb 模式**：桌面脚本在 `global_script.js` 里写 `geodata-mode: true`（它有磁盘），但那样 mihomo 会读 `GeoIP.dat`（约 16.5 M）而不是 `Country.mmdb`（约 200 K）。旁路由的 flash 只有 38.6 M，所以模块固定输出 `geodata-mode: false`：`GEOIP,cn` 照常工作（`Country.mmdb` 就是回国 IP 段），私网地址另有显式 `IP-CIDR` 规则兜住，`GeoIP.dat` 不必存在。同一个策略在 `[General]` 里又钉了一遍（`ENABLE_GEOIP_DAT = 0`，见下面「旁路由的 geodata 占用」）：YAML 只能决定 mihomo 读哪份库，决定不了 OpenClash 自己去下哪几份文件，两件事得分别钉。

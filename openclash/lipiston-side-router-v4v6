@@ -1050,9 +1050,11 @@ rule-providers:
     url: 'https://fastly.jsdelivr.net/gh/DustinWin/ruleset_geodata@clash-ruleset/applications.list'
     path: './rule_provider/applications.list'
   lipiston:
-    type: file
+    type: http
     behavior: classical
     format: yaml
+    interval: 86400
+    url: 'https://raw.githubusercontent.com/LIPiston/clash-override/main/ruleset/lipiston.yaml'
     path: './rule_provider/lipiston.yaml'
   ai:
     type: http
@@ -1084,7 +1086,6 @@ rule-providers:
   - DOMAIN-KEYWORD,rlzy,DIRECT
   - DOMAIN-KEYWORD,rsxt,DIRECT
   - DOMAIN-KEYWORD,g5air,DIRECT
-  - DOMAIN-KEYWORD,lipiston,DIRECT
   - DOMAIN-KEYWORD,tailscale,DIRECT
   - DOMAIN,h1.gzankun.com,DIRECT
   - IP-CIDR,100.64.0.0/10,DIRECT

@@ -25,7 +25,7 @@
 | `openclash/lipiston-side-router.sha256` | 源脚本与两条生成物的校验和 |
 | `openclash/test_converter.js` | 转换器回归测试 |
 | `test_select_group_auto_options.js` | 桌面脚本回归测试：选择组里的自动测速选项不能被排除 |
-| `ruleset/lipiston.yaml` | 个人直连规则集（Minecraft / UU 远程），模块把它注册成本地 rule-provider |
+| `ruleset/lipiston.yaml` | 个人直连规则集（Minecraft / UU 远程），模块把它注册成在线 rule-provider（本地副本兜底） |
 | `docs/` | 配置说明与 DNS/TUN/嗅探说明 |
 
 旁路由那条线的细节（安装、与桌面端的差异、geodata 空间占用）都在 [openclash/README.md](openclash/README.md)。
@@ -130,7 +130,7 @@ sha256sum openclash/lipiston-side-router openclash/lipiston-side-router-v4v6
 - UU 远程 / GameViewer 相关的网易域名（`nrd.nie.163.com`、`webapp.163.com`、`gdl.netease.com`、`fp.ps.netease.com`）；
 - 运动世界校园 / [NekoSportsWorldTool](https://github.com/YanamiNeko/NekoSportsWorldTool) 的域名（`iydsj.com`，覆盖 `run.gxapp.iydsj.com`、`discovery.gxapp.iydsj.com`）与登录用极验域名（`geetest.com`）。
 
-规则按域名/关键词匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。桌面端通过 `direct.ruleSets = ['lipiston']` 挂上这份规则集；模块则把它注册为本地 `rule-provider`（`type: file` + `./rule_provider/lipiston.yaml`）。另外 `direct` 规则的关键词表里有 `lipiston`，所以所有匹配 `lipiston` 的域名（含 `mix.lipiston.top`）统一走直连。
+规则按域名/关键词匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。桌面端通过 `direct.ruleSets = ['lipiston']` 挂上这份规则集；模块则把它注册为在线 `rule-provider`（`type: http` + `url` 指向仓库里的这份文件，`path` 改到路由器上的 `./rule_provider/lipiston.yaml`）。那一份本地副本是兜底：mihomo 按 `interval` 拉取上游，拉不到时才继续用它（`type: file` 会让 mihomo 完全忽略 `url`、规则永远不更新，所以模块不会把 `lipiston` 转成 `file`）。
 
 ## 文档
 

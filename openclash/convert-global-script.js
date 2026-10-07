@@ -550,16 +550,14 @@ function emitGroup(out, group, extra) {
 function rewriteRuleProviders(providers) {
     const rewritten = {}
     for (const [name, provider] of Object.entries(providers || {})) {
-        if (name === 'lipiston') {
-            // The personal ruleset ships with this repository; never fetch it remotely.
-            rewritten[name] = {
-                type: 'file',
-                behavior: provider.behavior,
-                format: provider.format,
-                path: './rule_provider/lipiston.yaml',
-            }
-            continue
-        }
+        // Every provider keeps the type the source script gave it -- `type: file` included.
+        // Rewriting the personal ruleset to `type: file` used to look harmless (the file
+        // does ship with this repository), but mihomo then drops the provider's `url`
+        // on the floor: a `file` provider is read from `path` and never refreshed, so an
+        // online ruleset goes permanently stale on the router. Keeping `type: http` with
+        // that same `path` gets both halves -- mihomo refreshes it from the URL and, if
+        // the pull fails, keeps using the on-disk copy (it only aborts, with
+        // `initial rule provider <name> error`, when the file is missing as well).
         rewritten[name] = {
             ...provider,
             path: `./rule_provider/${path.posix.basename(provider.path || name)}`,

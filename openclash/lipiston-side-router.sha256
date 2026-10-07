@@ -1,8 +1,8 @@
 Generated from `global_script.js` with `openclash/convert-global-script.js`, which writes both
 variants in one run (IPv4-only at the bare path, dual-stack at `-v4v6`).
 
-SHA-256 of `global_script.js`: `58671a36976714a599b00f2fedddfd8c3c11227c7ffbe3fc63bc9d93ebf4b652`
+SHA-256 of `global_script.js`: `eba071fe3da69e184e952d19c70f50aaa45bbf22a235c44d90aa20aaad0d1f23`
 
-SHA-256 of `openclash/lipiston-side-router`: `52e70e26eb801f8c826435806200ae0d542d6771ec155c171fc85e0f6bee5d12`
+SHA-256 of `openclash/lipiston-side-router`: `35e3a69d321a054df055117dba9b93493b8c7bdf3bc04bd87bdf2beef0b0a242`
 
-SHA-256 of `openclash/lipiston-side-router-v4v6`: `3af9bfbc20b61e9be7273206723df8d1c05cfc3dd418a92c8f46be64479d9f55`
+SHA-256 of `openclash/lipiston-side-router-v4v6`: `64f8ceb9ec8c2aaec0d31a875f32afe65138fd3229e74735ce8c0af39177f754`

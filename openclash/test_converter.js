@@ -216,14 +216,36 @@ assert.match(out, /^ {2}server: cn\.ntp\.org\.cn$/m)
 assert.match(out, /^ {6}ports:$/m, 'the sniffer port map must survive as nested YAML')
 
 // ---------------------------------------------------------------------------
-// 3. Rule providers: the personal ruleset is local, the rest stay remote.
+// 3. Rule providers: remote lists are re-pathed, never downgraded to local files.
 // ---------------------------------------------------------------------------
 assert.match(out, /^rule-providers:$/m)
-assert.match(out, /^ {4}type: file$/m)
 assert.match(out, /path: '\.\/rule_provider\/lipiston\.yaml'/)
 assert.match(out, /path: '\.\/rule_provider\/ai\.list'/)
 assert.match(out, /path: '\.\/rule_provider\/AWAvenue-Ads-Rule-Clash-Classical\.yaml'/)
-// The ad ruleset is a YAML classical list, not a binary domain list.
+// The personal ruleset stays a remote list. `type: file` would make mihomo read `path`
+// and ignore `url` entirely, freezing the router's copy forever (the local file is only
+// a first-run/offline fallback for `type: http`). Every provider the source script gets
+// from a URL must therefore keep both its URL and its type.
+assert.match(out, /^ {2}lipiston:$/m)
+assert.match(
+    out,
+    /url: 'https:\/\/raw\.githubusercontent\.com\/LIPiston\/clash-override\/main\/ruleset\/lipiston\.yaml'/,
+    'the provider url must be carried over from the source script verbatim',
+)
+assert.match(source, /url: 'https:\/\/raw\.githubusercontent\.com\/LIPiston\/clash-override\/main\/ruleset\/lipiston\.yaml'/)
+assert.doesNotMatch(out, /^ {4}type: file$/m, 'a file provider never refreshes its url')
+// Same guarantee for every provider, not just the personal one: each block must carry a
+// url and an http type, so none can be silently pinned to a stale local copy.
+const providerBlocks = out
+    .slice(out.indexOf('rule-providers:'), out.indexOf('\n+rules:'))
+    .split(/\n(?= {2}\S)/)
+    .filter((block) => /^ {2}\S.*:\n/.test(block) && block.includes('path:'))
+assert.equal(providerBlocks.length, 4, 'all four providers must be emitted')
+for (const block of providerBlocks) {
+    const name = block.match(/^ {2}(\S+):/)[1]
+    assert.match(block, /^ {4}type: http$/m, `${name}: providers must stay remote`)
+    assert.match(block, /^ {4}url: /m, `${name}: providers must keep their url`)
+}
 assert.match(out, /^ {2}AWAvenue-Ads-Rule:$/m)
 assert.match(out, /^ {4}behavior: classical$/m)
 assert.match(out, /^ {4}format: yaml$/m)
