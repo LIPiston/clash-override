@@ -4,6 +4,7 @@ payload:
   - DOMAIN-KEYWORD,vitasub
   - DOMAIN-SUFFIX,mc.windmilltown.net
   - DOMAIN-SUFFIX,lvss.xyz
+  - DOMAIN-SUFFIX,ai.lipiston.ru.org
 # UU 远程
   - DOMAIN-SUFFIX,nrd.nie.163.com
   - DOMAIN-SUFFIX,webapp.163.com
