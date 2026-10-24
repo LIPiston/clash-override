@@ -1198,6 +1198,24 @@ function main(config) {
     if (ruleOptions.games) {
         rules.push(
             'GEOSITE,category-games@cn,国内网站',
+            // Steam 拆分：登录 / 下载 / 好友直连，商店 / 社区等其余内容由
+            // 下面的 GEOSITE,steam 交给「游戏专用」。这批规则必须排在
+            // GEOSITE,steam 前面，否则会被整体吸进代理组。下载 CDN
+            // （steamcontent/steamserver）直连才能跑满带宽；好友网络和客户端
+            // 登录走的 CM 服务器按 IP 发起、不命中域名规则，所以单独列出 Valve
+            // 的 CM 网段。CM 网段若有新增，也只是回落到代理，不会断连。
+            'DOMAIN,login.steampowered.com,DIRECT',
+            'DOMAIN-SUFFIX,steam-chat.com,DIRECT',
+            'DOMAIN-SUFFIX,steamcontent.com,DIRECT',
+            'DOMAIN-SUFFIX,steamserver.net,DIRECT',
+            'IP-CIDR,146.66.152.0/21,DIRECT,no-resolve',
+            'IP-CIDR,153.254.86.0/24,DIRECT,no-resolve',
+            'IP-CIDR,155.133.224.0/19,DIRECT,no-resolve',
+            'IP-CIDR,162.254.192.0/21,DIRECT,no-resolve',
+            'IP-CIDR,185.25.180.0/22,DIRECT,no-resolve',
+            'IP-CIDR,205.196.6.0/24,DIRECT,no-resolve',
+            'IP-CIDR,208.64.200.0/22,DIRECT,no-resolve',
+            'IP-CIDR,208.78.164.0/22,DIRECT,no-resolve',
             'GEOSITE,steam,游戏专用',
             'GEOSITE,category-games,游戏专用'
         )

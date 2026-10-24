@@ -1107,6 +1107,18 @@ rule-providers:
   - GEOSITE,facebook,国外社区
   - GEOSITE,twitter,国外社区
   - GEOSITE,category-games@cn,国内网站
+  - DOMAIN,login.steampowered.com,DIRECT
+  - DOMAIN-SUFFIX,steam-chat.com,DIRECT
+  - DOMAIN-SUFFIX,steamcontent.com,DIRECT
+  - DOMAIN-SUFFIX,steamserver.net,DIRECT
+  - IP-CIDR,146.66.152.0/21,DIRECT,no-resolve
+  - IP-CIDR,153.254.86.0/24,DIRECT,no-resolve
+  - IP-CIDR,155.133.224.0/19,DIRECT,no-resolve
+  - IP-CIDR,162.254.192.0/21,DIRECT,no-resolve
+  - IP-CIDR,185.25.180.0/22,DIRECT,no-resolve
+  - IP-CIDR,205.196.6.0/24,DIRECT,no-resolve
+  - IP-CIDR,208.64.200.0/22,DIRECT,no-resolve
+  - IP-CIDR,208.78.164.0/22,DIRECT,no-resolve
   - GEOSITE,steam,游戏专用
   - GEOSITE,category-games,游戏专用
   - RULE-SET,AWAvenue-Ads-Rule,广告过滤

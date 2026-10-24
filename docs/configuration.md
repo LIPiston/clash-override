@@ -112,6 +112,10 @@ direct: {
 
 当前内置的直连规则集为 `lipiston`，文件是 [`ruleset/lipiston.yaml`](../ruleset/lipiston.yaml)，内含 Minecraft / UU 远程 / 运动世界校园等条目。它按域名匹配，不使用固定端口。
 
+### Steam 拆分
+
+`games` 开关生成的规则把 Steam 按用途拆开：登录（`login.steampowered.com`）、下载 CDN（`steamcontent.com`、`steamserver.net`）与好友（`steam-chat.com`，以及客户端登录 / 好友网络实际使用的 Valve CM 服务器 IP 段）直连；商店、社区等其余 Steam 域名继续由 `GEOSITE,steam` 走「游戏专用」策略组。国区下载镜像（`st.dl.*` 等 `@cn` 条目）由 `GEOSITE,category-games@cn` 落到「国内网站」。
+
 ## 6. 运行时安全配置
 
 脚本会自动处理：
