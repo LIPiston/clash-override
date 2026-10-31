@@ -29,7 +29,7 @@ node openclash/test_converter.js
 | --- | --- | --- |
 | `--ipv6` / `--no-ipv6` | 两条都出 | 只出 `-v4v6`（v4+v6）或只出纯 v4。切换的是 `[General]` 的 `IPV6_ENABLE`/`IPV6_DNS`/`ENABLE_V6_UDP_PROXY`/`FAKEIP_RANGE6` 与 `[YAML]` 里的 `dns.ipv6`、`dns.fake-ip-range6`，其余内容两条完全一致 |
 | `--regions=HK,JP,SG,US` | 源脚本地区表去掉 `CN`（19 个） | 生成哪些地区组，可写地区码或全名，`ALL` 表示源脚本里的全部 20 个（含 `CN`） |
-| `--replace-rules` / `--no-replace-rules` | `--no-replace-rules` | 把整份规则表也换成源脚本自己的（`rules!`，含它自己的 `MATCH,其他外网`）。代价：订阅自带规则、OpenClash 的自定义规则/路由自身规则注入全部失效 |
+| `--replace-rules` / `--no-replace-rules` | `--replace-rules` | 把整份规则表也换成源脚本自己的（`rules!`，含它自己的 `MATCH,其他外网`）。代价：订阅自带规则、OpenClash 的自定义规则/路由自身规则注入全部失效。**默认开启**，因为 `proxy-groups!` 已经删掉了订阅的全部策略组，只前置规则会让指向那些组的订阅规则悬空（见下文） |
 | `--tun` / `--no-tun` | `--no-tun` | 是否输出源脚本的 `tun` 块 |
 | `--sniffer` / `--no-sniffer` | `--sniffer` | 是否输出源脚本的 `sniffer` 块 |
 | `--geo-update` / `--no-geo-update` | `--no-geo-update` | 是否输出 `geo-auto-update` + `geo-update-interval` + `geox-url`（默认不发，见下文） |
@@ -38,9 +38,18 @@ node openclash/test_converter.js
 ## 产出结构
 
 - `[General]`：OpenClash 的 UCI 覆写选项，`KEY = value` 形式（注意不是 YAML 的 `key: value`）。
-- `[YAML]`：`dns`、运行参数（`mode` / `profile` / `tcp-concurrent` / `unified-delay` / `keep-alive-*` / `find-process-mode` / `geodata-*` / `ntp` / 可选 `tun` / 可选 `sniffer`）、`proxies+`、`proxy-groups!`、`rule-providers`、`+rules`（`--replace-rules` 时是 `rules!`）。
+- `[YAML]`：`dns`、运行参数（`mode` / `profile` / `tcp-concurrent` / `unified-delay` / `keep-alive-*` / `find-process-mode` / `geodata-*` / `ntp` / 可选 `tun` / 可选 `sniffer`）、`proxies+`、`proxy-groups!`、`rule-providers`、`rules!`（`--no-replace-rules` 时退回 `+rules`）。
 
-**策略组整棵替换，规则是前置追加。** `proxy-groups!` 是 YAML.rb 的强覆写操作符，合并时整份 `proxy-groups` 都被模块的树取代 —— 订阅自带的 `节点选择` / `自动选择` 不会作为第二棵树留下来，也就不可能撞名。`proxies+` 追加节点、`+rules` 把自己的规则前置、`rule-providers` 按键深合并，所以 OpenClash 原有的 DNS 上游、远程 rule-providers 以及末尾的 `MATCH` 都还在；那个 `MATCH` 指向 `节点选择`，正是模块接管过去的组名，兜底流量因此也走模块自己的选择器。要连规则一起接管就用 `--replace-rules`。
+**策略组和规则表一起整棵替换。** `proxy-groups!` 与 `rules!` 都是 YAML.rb 的强覆写操作符，合并时整份 `proxy-groups` / `rules` 都被模块的树取代 —— 订阅自带的 `节点选择` / `自动选择` 不会作为第二棵树留下来，也就不可能撞名。`proxies+` 追加节点、`rule-providers` 按键深合并，所以 OpenClash 原有的 DNS 上游与远程 rule-providers 都还在；`rules!` 一并带走的是订阅规则和 OpenClash 的规则注入（自定义规则 / BT / 路由自身规则 / smart），兜底由源脚本自己的 `MATCH,其他外网` 承担。
+
+**两边必须一起替换。** 只替换策略组、规则仍旧前置（旧的 `--no-replace-rules`）时会留下悬空引用：`proxy-groups!` 删掉了订阅的全部组，而订阅自己的规则里仍在引用那些组名。本机的订阅带 `🌏 爱奇艺&哔哩哔哩` 和 `DOMAIN,app.biliapi.net,🌏 爱奇艺&哔哩哔哩`，规则排在模块 58 条前置规则之后的 `rules[58]`，于是 mihomo 直接拒绝启动：
+
+```
+Parse config error: rules[58] [DOMAIN,app.biliapi.net,🌏 爱奇艺&哔哩哔哩]
+error: proxy [🌏 爱奇艺&哔哩哔哩] not found
+```
+
+`--no-replace-rules` 只在「订阅的每个组名在模块的树里都存在」时才安全。
 
 ## 与桌面脚本的差异
 
@@ -48,7 +57,7 @@ node openclash/test_converter.js
 
 - **不启用 TUN**（`--no-tun`）：旁路由已经在主路由后面，再开 TUN 会和主路由的网关转发重复接管。
 - **丢弃 `PROCESS-NAME` 规则**：路由器上 mihomo 看不到客户端进程名，留着只会误判。
-- **默认丢弃桌面端的 `MATCH`，把兜底留给 OpenClash**：兜底规则放到前面会截断 OpenClash 自己的规则。模块把主选择器发布成 `节点选择` 之后，OpenClash 配置末尾原有的 `MATCH,节点选择` 恰好落回模块的树，所以既不用改规则、也没丢 OpenClash 的规则注入；要让源脚本自己的 `MATCH,其他外网` 生效就用 `--replace-rules`（整份规则表一起替换）。
+- **规则表也整份替换，兜底用源脚本自己的 `MATCH,其他外网`**：既然策略组已经是模块独占的一棵树，规则就必须跟着一起换 —— 否则订阅里指向 `🌏 爱奇艺&哔哩哔哩` 这类被删掉组的规则会悬空（见上文）。`--no-replace-rules` 只把规则改回前置追加、并把源脚本的 `MATCH` 丢掉（兜底仍交给 OpenClash 末尾那条），仅在订阅的每个组名都能在模块树里找到时才安全。
 - **地区组改成动态**：桌面端是靠 JS 正则去匹配节点名、把成员写死；模块改用 `include-all: true` + `filter`（源脚本的地区正则）+ `exclude-type`。订阅换节点名也不用重新生成模块。
 - **`include-all` 组必须显式排除 `直连` 和假节点**：`include-all` 拉进来的是**最终配置里的全部 adapter**，不是「订阅里的节点」。两类非节点会被一起卷进去，而桌面端从来不会有这个问题 —— 桌面脚本在**建组之前**就用 `isSafeProxy` + `FAKE_NODE_REGEX` 把 `config.proxies` 洗干净，而 `直连` 是在**建完自动组之后**才 push 进 `config.proxies` 的（`global_script.js` 第 971-978 行），顺序天然保护了它。`include-all` 绕过了这个顺序：
   - 模块自己的 `直连`（`Direct` adapter）。它不只是噪音 —— 组用 `https://www.gstatic.com/generate_204` 做健康检查，而 `gstatic.com/generate_204` **经代理的 DNS 解析后直连也返回 204**，所以 `直连` 是延迟最低的成员，`url-test` 组会选它。指向该选择器的组就全部静默走直连：这台的 `节点选择 → 自动选择 → 直连` 意味着谷歌/YouTube/苹果/微软流量根本没出过 LAN。
@@ -58,7 +67,7 @@ node openclash/test_converter.js
 - **地区组不看倍率**：桌面端静态轮里 `ratioLimit`（默认 5）确实会挡掉高倍率节点，但它后面的 `autoDetect` 完全不看倍率、按国家码把那些节点又塞回地区组（`existingGroup.proxies.push(n)`），净效果是倍率对地区组不起作用。所以模块的地区组**不带**倍率 `exclude-filter` —— 带上反而更不准：那些节点会被地区正则挡在 `其他节点` 之外、又进不了地区组，变成哪个组都不在。整份模块的 `exclude-filter` 只有两种用途：`include-all` 组的假节点排除（23 个组），以及 `其他节点` 的「地区并集 + 假节点排除」。
 - **地区正则补上 `(?i)`**：源脚本的地区正则是 `/i` 的，转成 Go 正则时必须写成 `(?i)…`，否则 `Hong Kong`、`Japan` 这类大小写混排的节点名匹配不上，会整组漏进 `其他节点`（甚至让某个地区组变空）。
 - **默认生成 19 个地区组**：源脚本地区表去掉 `CN`（中国大陆 不单独出组），顺序其余照源脚本。代价是某个地区在订阅里确实没有节点时，该组会解析成空组，mihomo 会以 `proxy group [X] has no proxies` 拒绝启动 —— 用 `--regions=HK,JP,SG,US,TW,KR` 收窄即可。
-- **整棵策略组树替换掉订阅自带的**：模块用 `proxy-groups!`（YAML.rb 的强覆写）发布完整一棵树，并把源脚本的主选择器 `默认节点` 改用订阅规则已经在引用的名字 `节点选择` 发布出去 —— 订阅自己的 42 条规则（含末尾 `MATCH,节点选择`）因此继续有效，路由器上只剩一棵选择器树。三条自动测试组直接用源脚本的裸名字 `自动选择` / `故障转移` / `负载均衡`：既然整份 `proxy-groups` 被替换，就不可能再撞名。（早先用的是 `proxy-groups+` 纯追加，OpenClash 的深度合并不按组名去重，撞名时 mihomo 以 `Parse config error: ProxyGroup 自动选择: duplicate group name` 拒绝启动，才需要加 `·模块` 后缀区分。）`默认节点` 这个名字现在不会出现在产物里，回归测试会断言这一点。
+- **整棵策略组树替换掉订阅自带的**：模块用 `proxy-groups!`（YAML.rb 的强覆写）发布完整一棵树，并把源脚本的主选择器 `默认节点` 改用 OpenClash UI 与订阅规则长期沿用的名字 `节点选择` 发布出去 —— 路由器上只剩一棵选择器树，且规则表同样整份替换（`rules!`），不会再有指向被删组的悬空规则。三条自动测试组直接用源脚本的裸名字 `自动选择` / `故障转移` / `负载均衡`：既然整份 `proxy-groups` 被替换，就不可能再撞名。（早先用的是 `proxy-groups+` 纯追加，OpenClash 的深度合并不按组名去重，撞名时 mihomo 以 `Parse config error: ProxyGroup 自动选择: duplicate group name` 拒绝启动，才需要加 `·模块` 后缀区分。）`默认节点` 这个名字现在不会出现在产物里，回归测试会断言这一点。
 - **`其他节点` 只收「匹配不到任何地区」的节点**：它的 `exclude-filter` 用的是源脚本地区表里**全部 20 个地区**的正则并集（同样带 `(?i)`），而不是只排除本次生成的地区。默认 19 个组全生成时它就是纯兜底组；用 `--regions=` 收窄后，未生成地区的节点也不会混进来 —— 包括 `CN` 这种默认不出组的地区：它们的节点仍然在 `自动选择` / `故障转移` / `负载均衡`（`include-all`、不做地区过滤）里参与测速与选择，只是没有专属选项。顺带修掉了源脚本里主选择器 ↔ `其他节点` 的互相引用：`其他节点` 不再把主选择器列成成员（`global_script.js` 的 `selectableProxyGroupNames.filter((x) => x !== '其他节点' && x !== '默认节点')`），因为主选择器本来就把 `其他节点` 当成员，互指会被 mihomo 判成 `Parse config error: loop is detected in ProxyGroup, please check following ProxyGroups: [默认节点 其他节点]`。主选择器 → `其他节点` 这条单向边保留，所以兜底节点仍然能从主选择器里选到；回归测试现在会对每个生成结果做一遍深度优先环路检测。
 - **广告只走 AWAvenue**：模块里删掉了源脚本自带的两层广告拦截 —— 规则层的 `GEOSITE,category-ads-all,广告过滤` 与 DNS 层的 `nameserver-policy: 'geosite:category-ads-all': 'rcode://success'`（广告域名照常解析，不再被 `rcode://success` 短路），只保留 `AWAvenue-Ads-Rule` 这个 `behavior: classical` 的 YAML 规则集 + `广告过滤` 组。桌面端两层都保留。
 - **`跟踪分析` 组整个删掉了**：源脚本里的 `GEOSITE,tracker,跟踪分析` 规则和 `跟踪分析` 选择组已从 `global_script.js` 移除 —— AWAvenue-Ads-Rule 本身已经收录跟踪/分析域名（规则层的 `RULE-SET,AWAvenue-Ads-Rule,广告过滤` 会兜住），而且不少路由器自带的 GeoSite.dat 没有 `tracker` 这个分类，留着会让 mihomo 以 `list tracker not found in GeoSite.dat` 直接拒绝启动。桌面端和模块都跟着源脚本一起不再生成，所以这不是「差异」，是两边同时去掉。

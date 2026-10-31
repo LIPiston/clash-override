@@ -1069,8 +1069,9 @@ rule-providers:
     url: 'https://github.boki.moe/https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash-Classical.yaml'
     path: './rule_provider/AWAvenue-Ads-Rule-Clash-Classical.yaml'
 
-# Prepended to OpenClash's own rule list, which keeps its own final MATCH.
-+rules:
+# Replaces OpenClash's rule list: the subscription's own rules and OpenClash's
+# rule surgery (自定义规则 / BT / 路由自身规则 / smart) no longer apply.
+rules!:
   - DOMAIN-SUFFIX,bing.com,微软服务
   - DOMAIN-SUFFIX,bing.net,微软服务
   - DOMAIN-SUFFIX,warframe.com,DIRECT
@@ -1129,3 +1130,4 @@ rule-providers:
   - GEOIP,private,DIRECT,no-resolve
   - GEOSITE,cn,国内网站
   - GEOIP,cn,国内网站,no-resolve
+  - MATCH,其他外网

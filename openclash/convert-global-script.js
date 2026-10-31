@@ -13,8 +13,10 @@
  *   - DNS / runtime keys come straight from the source script.
  *   - Proxy groups REPLACE OpenClash's own with `proxy-groups!`, so exactly one
  *     selector tree exists -- the same shape the desktop script produces.
- *   - Rules are prepended with `+rules` so OpenClash's own catch-all still wins
- *     (`--replace-rules` takes the whole rule list over instead).
+ *   - Rules REPLACE the rule list with `rules!` as well. Replacing the groups while only
+ *     prepending rules leaves the subscription's rules pointing at groups that no longer
+ *     exist (`Parse config error: rules[58] [DOMAIN,...] error: proxy [X] not found`);
+ *     `--no-replace-rules` goes back to prepending, at the cost of that mismatch.
  *   - Region groups are built dynamically with include-all + filter, because the
  *     router never knows the subscription's node names at conversion time.
  */
@@ -116,7 +118,9 @@ function usage() {
         '                           (default: both)',
         '  --regions=HK,JP,SG,US    region groups to generate, or ALL (default: all 20)',
         '  --replace-rules          emit `rules!` with the source script\'s whole rule list,',
-        '                           including its own final MATCH (default: prepend only)',
+        '                           including its own final MATCH (default: on)',
+        '  --no-replace-rules       go back to prepending `+rules` and keeping the',
+        '                           subscription\'s + OpenClash\'s own rule lists',
         '  --tun | --no-tun         emit the source script tun block (default: no-tun)',
         '  --sniffer | --no-sniffer emit the source script sniffer block (default: sniffer)',
         '  --geo-update | --no-geo-update',
@@ -143,9 +147,15 @@ function parseArgs(argv) {
         // Both variants unless `--ipv6` / `--no-ipv6` narrows the run to one.
         variants: VARIANTS.slice(),
         regions: DEFAULT_REGIONS.slice(),
-        // Off by default: the module prepends its rules and lets OpenClash keep its own list
-        // (and the subscription's), so OpenClash's rule surgery stays meaningful.
-        replaceRules: false,
+        // ON by default. The module force-replaces the whole group tree (`proxy-groups!`), so
+        // any rule that survives elsewhere and points at a subscription-only group (this
+        // subscription ships `🌏 爱奇艺&哔哩哔哩`) resolves to a group that no longer exists and
+        // mihomo refuses to start with `Parse config error: rules[N] ... proxy [X] not found`.
+        // Taking the rule list over as well keeps the two halves consistent: the only rules left
+        // are the ones that point at groups the module actually publishes. `--no-replace-rules`
+        // restores the old prepend-only behaviour for subscriptions whose groups all happen to
+        // exist in the module's tree.
+        replaceRules: true,
         tun: false,
         sniffer: true,
         // Off by default for the router module: mihomo's own updater would duplicate

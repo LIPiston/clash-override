@@ -111,10 +111,44 @@ function readGroups(text) {
     return groups
 }
 
+/**
+ * Read the emitted rule list (`rules!` or `+rules`) and return each rule's target, i.e. the
+ * last field that is not a rule modifier. Mirrors what mihomo resolves at parse time.
+ */
+const RULE_MODIFIERS = new Set(['no-resolve', 'src', 'src-port', 'dscp'])
+function readRuleTargets(text) {
+    const targets = []
+    let inRules = false
+    for (const line of text.split('\n')) {
+        if (/^(\+rules|rules!):$/.test(line)) {
+            inRules = true
+            continue
+        }
+        if (!inRules) continue
+        const item = line.match(/^ {2}- (.+)$/)
+        if (!item) {
+            if (line.trim() !== '' && !/^ /.test(line)) inRules = false
+            continue
+        }
+        const fields = unquote(item[1]).split(',').map((field) => field.trim())
+        while (fields.length > 1 && RULE_MODIFIERS.has(fields[fields.length - 1])) fields.pop()
+        // `MATCH,<target>` is the only rule type without a matcher field before the target.
+        if (fields.length >= 2) targets.push({ rule: line.trim(), target: fields[fields.length - 1] })
+    }
+    return targets
+}
+
 function checkReferences(text, label, extra = []) {
     const groups = readGroups(text)
     const defined = new Set(groups.map((group) => group.name))
     for (const name of ['直连', 'DIRECT', 'REJECT', ...extra]) defined.add(name)
+
+    // A rule pointing at a group the module does not publish is exactly the failure this
+    // suite missed once: `proxy-groups!` wiped the subscription's `🌏 爱奇艺&哔哩哔哩` while
+    // `+rules` kept the subscription's rule that targets it, and mihomo refused to start.
+    for (const { rule, target } of readRuleTargets(text)) {
+        assert.ok(defined.has(target), `${label}: rule ${rule} references undefined target ${target}`)
+    }
     for (const group of groups) {
         for (const member of group.proxies) {
             assert.ok(
@@ -192,10 +226,14 @@ assert.match(out, /^\[YAML\]$/m)
 assert.match(out, /^proxies\+:$/m)
 assert.match(out, /^proxy-groups!:$/m, 'the group tree must be replaced, not appended')
 assert.doesNotMatch(out, /^proxy-groups\+:$/m, 'appending would leave a second selector tree behind')
-assert.match(out, /^\+rules:$/m)
-assert.doesNotMatch(out, /^rules!:$/m, 'taking the rule list over is opt-in')
+// The rule list is taken over by default. Leaving it to OpenClash while `proxy-groups!`
+// wipes every subscription group is what made mihomo refuse to start with
+// `Parse config error: rules[58] [DOMAIN,app.biliapi.net,🌏 爱奇艺&哔哩哔哩] error: proxy
+// [🌏 爱奇艺&哔哩哔哩] not found`: the rule survived, the group it points at did not.
+assert.match(out, /^rules!:$/m, 'the rule list is replaced by default, keeping it consistent with proxy-groups!')
+assert.doesNotMatch(out, /^\+rules:$/m)
+assert.match(out, /^ {2}- MATCH,其他外网$/m, 'a takeover needs the source catch-all back')
 assert.doesNotMatch(out, /PROCESS-NAME,/, 'process rules cannot work on a router')
-assert.doesNotMatch(out, /^ {2}- MATCH,/m, 'the desktop MATCH would preempt OpenClash rules')
 assert.doesNotMatch(out, /^tun:$/m, 'the side router must not enable TUN by default')
 assert.match(out, /^sniffer:$/m)
 
@@ -237,7 +275,7 @@ assert.doesNotMatch(out, /^ {4}type: file$/m, 'a file provider never refreshes i
 // Same guarantee for every provider, not just the personal one: each block must carry a
 // url and an http type, so none can be silently pinned to a stale local copy.
 const providerBlocks = out
-    .slice(out.indexOf('rule-providers:'), out.indexOf('\n+rules:'))
+    .slice(out.indexOf('rule-providers:'), Math.max(out.indexOf('\n+rules:'), out.indexOf('\nrules!:')))
     .split(/\n(?= {2}\S)/)
     .filter((block) => /^ {2}\S.*:\n/.test(block) && block.includes('path:'))
 assert.equal(providerBlocks.length, 4, 'all four providers must be emitted')
@@ -408,16 +446,29 @@ const narrowOther = readGroups(out).find((group) => group.name === '其他节点
 assert.ok(narrowOther.excludeFilter.includes('荷'), 'catch-all excludes ungenerated regions too')
 
 // ---------------------------------------------------------------------------
-// 8. Taking the rule list over as well is opt-in, and keeps the source MATCH.
+// 8. Taking the rule list over is the default, because the group tree is replaced.
+//
+// Replacing the groups while only prepending rules leaves any subscription rule that
+// points at a subscription-only group dangling. This subscription ships
+// `🌏 爱奇艺&哔哩哔哩` plus `DOMAIN,app.biliapi.net,🌏 爱奇艺&哔哩哔哩`; with `+rules` that
+// rule survived the group wipe and mihomo refused to start:
+//   Parse config error: rules[58] [DOMAIN,app.biliapi.net,🌏 爱奇艺&哔哩哔哩]
+//   error: proxy [🌏 爱奇艺&哔哩哔哩] not found
+// So the default now takes the whole list over, and `--no-replace-rules` restores the
+// prepend-only behaviour for subscriptions whose groups all exist in the module's tree.
 // ---------------------------------------------------------------------------
-out = run(source, ['--replace-rules'])
-assert.match(out, /^rules!:$/m, 'the takeover must force-replace the rule list')
+out = run(source)
+assert.match(out, /^rules!:$/m, 'the default must force-replace the rule list')
 assert.doesNotMatch(out, /^\+rules:$/m)
 assert.match(out, /^ {2}- MATCH,其他外网$/m, 'a takeover needs the source catch-all back')
+assert.doesNotMatch(out, /爱奇艺/, 'the dangling subscription group must not survive')
 checkReferences(out, 'replace-rules')
-out = run(source)
+
+out = run(source, ['--no-replace-rules'])
+assert.match(out, /^\+rules:$/m, 'opting out must go back to prepending')
 assert.doesNotMatch(out, /^rules!:$/m)
 assert.doesNotMatch(out, /^ {2}- MATCH,/m, 'prepending leaves the catch-all to OpenClash')
+checkReferences(out, 'no-replace-rules')
 
 // ---------------------------------------------------------------------------
 // 9. IPv6 toggles both the UCI section and the YAML DNS block.
