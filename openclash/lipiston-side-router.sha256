@@ -3,6 +3,11 @@ variants in one run (IPv4-only at the bare path, dual-stack at `-v4v6`).
 
 SHA-256 of `global_script.js`: `8c383f05f0a5b5b0f0a144a6e4e18107ffd0099bf667c4b606dd842edee2031e`
 
-SHA-256 of `openclash/lipiston-side-router`: `3037612796d5ca3e426d5a54b376f29930673dab1d12d896b8dbecb09a291c11`
+SHA-256 of `openclash/lipiston-side-router`: `20177abf23f3f4e5f8631662a72ea4253b12a0ff1cc2145d4387435ae82c0bb6`
 
-SHA-256 of `openclash/lipiston-side-router-v4v6`: `b7b453d4781bc200d1c7b6d7cceaec2e849c8cc0729b707ac094491de4375f91`
+SHA-256 of `openclash/lipiston-side-router-v4v6`: `5c7f910dddbbb2ca72ee0e9c1f6739bfe5c071783eeb8fac3ea2e809d87135dd`
+
+Note: `dns.fake-ip-filter` is emitted with the `+` (prepend) operator, not a plain key. A plain
+key replaces the whole array in `YAML.overwrite`, which silently dropped everything
+`/usr/share/openclash/yml_change.sh` adds for 绕过中国大陆 (`rule-set:oc-cn-domain` plus the
+chnroute_pass domains) — under fake-ip that made the bypass switch a no-op.

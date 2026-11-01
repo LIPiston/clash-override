@@ -33,7 +33,7 @@ dns:
   use-system-hosts: true
   respect-rules: true
   prefer-h3: false
-  fake-ip-filter:
+  +fake-ip-filter:
     - '+.lan'
     - '+.local'
     - localhost

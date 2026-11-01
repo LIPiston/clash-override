@@ -240,6 +240,11 @@ assert.match(out, /^sniffer:$/m)
 // The DNS block is carried over whole, not collapsed to a few lines.
 assert.match(out, /^ {2}enhanced-mode: fake-ip$/m)
 assert.match(out, /^ {2}fake-ip-filter-mode: blacklist$/m)
+// The filter must be PREPENDED, not merged: OpenClash appends `rule-set:oc-cn-domain` to the
+// same array in yml_change.sh when 绕过中国大陆 is on, and a plain `fake-ip-filter:` key would
+// make YAML.overwrite replace the whole array and drop it (bypass silently does nothing).
+assert.match(out, /^ {2}\+fake-ip-filter:$/m, 'fake-ip-filter must use the prepend operator')
+assert.doesNotMatch(out, /^ {2}fake-ip-filter:$/m, 'a plain fake-ip-filter key replaces the array')
 assert.match(out, /^ {2}nameserver-policy:$/m)
 assert.match(out, /'geosite:geolocation-!cn'/)
 assert.match(out, /^ {2}fallback-filter:$/m)

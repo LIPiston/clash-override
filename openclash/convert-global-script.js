@@ -433,7 +433,16 @@ function emitDns(out, dns, options) {
             if (value[key] === undefined) continue
             out.entry(indent, key, value[key])
         }
-        out.list(indent, 'fake-ip-filter', value['fake-ip-filter'] || [])
+        // Prepend, never merge. OpenClash's own /usr/share/openclash/yml_change.sh runs BEFORE
+        // this module (init.d: yml_change.sh -> yml_rules_change.sh -> YAML.overwrite_run) and,
+        // when 绕过中国大陆 is on, appends `rule-set:oc-cn-domain` to dns.fake-ip-filter plus the
+        // chnroute_pass domains at the head. YAML.overwrite with a plain key and a non-Hash value
+        // REPLACES the array (YAML.rb apply_operation :merge -> deep_dup(value)), which silently
+        // threw both additions away: under fake-ip every CN domain still got a 198.18.x address,
+        // so `ip daddr @china_ip_route` never matched and the bypass switch did nothing.
+        // `+key` is OpenClash's prepend_array operator ((module ++ base).uniq), which keeps the
+        // generated filter as the authoritative head and lets the dynamic CN filter survive.
+        out.list(indent, '+fake-ip-filter', value['fake-ip-filter'] || [])
         for (const key of [
             'default-nameserver',
             'nameserver',

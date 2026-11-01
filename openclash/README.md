@@ -51,6 +51,16 @@ error: proxy [🌏 爱奇艺&哔哩哔哩] not found
 
 `--no-replace-rules` 只在「订阅的每个组名在模块的树里都存在」时才安全。
 
+**`dns.fake-ip-filter` 用 `+` 前置，不是普通键。** 这一项是整个模块里唯一「必须和 OpenClash 自己的改写共存」的字段：
+`/etc/init.d/openclash` 的 Step 3 顺序是 `yml_change.sh`(3827) → `yml_rules_change.sh`(3838) →
+`YAML.overwrite_run`(3845)，所以模块总是在 yml_change 之后合并，而 `YAML.overwrite` 的默认操作符
+`:merge` 对非 Hash 值直接整体替换（`YAML.rb` 912/946 行）。写普通 `fake-ip-filter:` 会把 yml_change
+为「绕过大陆」追加的 `rule-set:oc-cn-domain`（以及 unshift 进去的 chnroute_pass 域名）静默抹掉，
+于是 fake-ip 下大陆域名照旧拿 198.18.x、`ip daddr @china_ip_route` 永不命中 —— **绕过开关开了等于没开**。
+`+fake-ip-filter:` 走 `:prepend_array`（`(模块 ++ 现有).uniq`），模块的 19 项在前、动态追加项在后，两者都在。
+实测：订阅 24 项 → yml_change 后 28 项 → 普通键合并 19 项（丢掉 oc-cn-domain）→ `+` 合并 44 项且无重复，
+`mihomo -t` 通过。`test_converter.js` 里已加断言防回退。
+
 ## 与桌面脚本的差异
 
 差异都是有意的，不是漏转：
