@@ -74,18 +74,18 @@ geodata-mode: true
 geodata-loader: memconservative   # 小内存环境用；旁路由模块保持不变
 geo-auto-update: true
 geo-update-interval: 24
-geox-url:                         # MetaCubeX meta-rules-dat latest
+geox-url:                         # geoip/geosite/mmdb: Loyalsoldier，asn: MetaCubeX
   geoip:   .../geoip.dat
   geosite: .../geosite.dat
-  mmdb:    .../country-lite.mmdb
+  mmdb:    .../Country.mmdb
   asn:     .../GeoLite2-ASN.mmdb
 ```
 
 脚本用到地区和地理规则，必须是**完整版** `geoip.dat` / `geosite.dat`，不要用精简版 `geoip-lite.dat`。如果你的客户端不支持上面的键、需要手动放置，推荐地址：
 
 ```text
-https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
-https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
+https://github.com/Loyalsoldier/geoip/releases/latest/download/geoip.dat
+https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
 ```
 
 如果日志出现以下错误，通常是 geoip 文件不完整：
@@ -159,7 +159,9 @@ bind-address: 127.0.0.1
 | clash-override | https://github.com/Adsryen/clash-override | 覆写结构参考 |
 | ACL4SSR | https://github.com/ACL4SSR/ACL4SSR | 自动测速策略组参考 |
 | Surfing | https://github.com/GitMetaio/Surfing | 分流规则结构参考 |
-| MetaCubeX | https://github.com/MetaCubeX/meta-rules-dat | 规则集与 geodata |
+| MetaCubeX | https://github.com/MetaCubeX/meta-rules-dat | 规则集与 ASN 库 |
+| Loyalsoldier | https://github.com/Loyalsoldier/geoip | GeoIP 数据（geoip.dat / Country.mmdb） |
+| Loyalsoldier | https://github.com/Loyalsoldier/v2ray-rules-dat | GeoSite 数据（geosite.dat） |
 | AWAvenue-Ads-Rule | https://github.com/TG-Twilight/AWAvenue-Ads-Rule | 广告规则集 |
 
 ## 许可证

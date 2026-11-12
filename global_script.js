@@ -814,12 +814,19 @@ function main(config) {
         server: 'cn.ntp.org.cn',
     }
 
+    /**
+     * geoip/mmdb 来自 Loyalsoldier/geoip，geosite 来自 Loyalsoldier/v2ray-rules-dat
+     * （都是定时自动构建；geosite.dat 基于 v2fly domain-list-community 扩展，脚本用到的
+     * 全部分类都在）。asn 只能 MetaCubeX：Loyalsoldier 的 Country-asn.mmdb 声明的是
+     * GeoLite2-Country 类型（内容是 telegram/google 等分类的国家库），mihomo 的 ASN 槽位
+     * 只认 GeoLite2-ASN，载入会报 Unsupported ASN type。没有 ASN 规则，但 mihomo 缺
+     * ASN.mmdb 时仍会按这份地址自行下载，所以显式钉住而非依赖核心内置默认。
+     */
     config['geox-url'] = {
-        geoip:
-            'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat',
+        geoip: 'https://github.com/Loyalsoldier/geoip/releases/latest/download/geoip.dat',
         geosite:
-            'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
-        mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb',
+            'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat',
+        mmdb: 'https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb',
         asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb',
     }
 
