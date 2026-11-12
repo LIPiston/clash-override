@@ -78,6 +78,7 @@ function applyRuntimeDefaults(config) {
             '+.myqcloud.com', '+.idqqimg.com', '+.qlogo.cn',
             '+.msftconnecttest.com', '+.msftncsi.com', '+.xboxlive.com',
             '+.tailscale.com',
+            '+.openbot.run', '*.openbot.run',
         ]),
         'use-hosts': true,
         'use-system-hosts': true,
