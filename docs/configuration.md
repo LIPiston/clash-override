@@ -116,7 +116,9 @@ direct: {
 
 `games` 开关生成的规则把 Steam 按用途拆开：登录（`login.steampowered.com`）、下载 CDN（`steamcontent.com`、`steamserver.net`）与好友（`steam-chat.com`，以及客户端登录 / 好友网络实际使用的 Valve CM 服务器 IP 段）直连；商店、社区等其余 Steam 域名继续由 `GEOSITE,steam` 走「游戏专用」策略组。国区下载镜像（`st.dl.*` 等 `@cn` 条目）由 `GEOSITE,category-games@cn` 落到「国内网站」。
 
-下载字节其实不从 `steamcontent.com` / `steamserver.net` 流出：它们只做入口，真正的字节走 302 落地域名（`files.steam.nsclouds.cn`、`gstore.val.smogfly.com`、`xz.hzywinf.com`、`xz.ty.xiaokuai.com` 等运营商复用域名）。这批域名过去只靠 `GEOSITE,cn` / `GEOIP,cn` 兜底，判定不一致时同一 depot 的分片请求会一半直连、一半进代理组，Steam 因此反复换源、下载速率呈双峰分布。所以它们既被显式加了 `DOMAIN-SUFFIX,…,DIRECT`，也进了 `fake-ip-filter`（这类域名拿到 fake-ip 就意味着每条分片连接都要先进 TUN）。
+下载字节其实不从 `steamcontent.com` / `steamserver.net` 流出：它们只做入口，真正的字节走 302 落地域名（`files.steam.nsclouds.cn`、`gstore.val.smogfly.com`、`xz.hzywinf.com`、`xz.ty.xiaokuai.com`）。前三个在 `geosite.dat` 的 `cn` 分类里本来就有，跟着 `GEOSITE,cn` 落「国内网站」；只有 `xz.ty.xiaokuai.com` 在任何分类里都不存在，拿到 fake-ip 后进代理组，于是同一 depot 的分片请求一半直连、一半绕代理，Steam 反复换源。所以规则表里只钉这一条 `DOMAIN-SUFFIX,xiaokuai.com,DIRECT`，**不要**为其余 CDN 域名重复堆规则——那 9 条是冗余的。
+
+`fake-ip-filter` 侧同理，只给「规则里明确 DIRECT 或 geosite 完全无覆盖」的域名开例外：`steamcontent.com` / `steamserver.net` / `steam-chat.com`（已经是 DIRECT）和 `xiaokuai.com`（唯一空洞）。`nsclouds.cn` / `smogfly.com` / `hzywinf.com` 跟着 `geosite:cn` 走，不加例外。
 
 只给确切的直连域名开例外，**不要**把 `steampowered.com` 或 `akamaized.net` 整体放进 `fake-ip-filter`：`sniffer` 是 `override-destination: false`，嗅探出域名但不改写目标，一旦 `store` / `community` / `api.steampowered.com` 拿到真实 IP，连接目标就是 IP，`GEOSITE,steam` 永不命中，商店社区的代理分流会漂移。
 

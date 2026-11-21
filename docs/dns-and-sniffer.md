@@ -75,7 +75,7 @@ fallback-filter:
 
 需要注意的边界：如果代理不可用，境外 DoH 会一并失败，此时核心可能退回使用国内解析器的答案。所以**保持至少一个可用节点**是这套 DNS 方案正常工作的前提。
 
-fake-ip 黑名单包含局域网、localhost、NTP、QQ/腾讯、微软连通性检测、Xbox，以及 Steam 的直连侧域名（`steamcontent.com` / `steamserver.net` / `steam-chat.com` 和国内下载 CDN 的 302 落地域名）等常见兼容项。Steam 那一批的理由是并发量：`steam.exe` 下载一个 depot 会开几百条分片连接，走 fake-ip 意味着每条都先进 TUN（`stack: system`），本身就压吞吐。遇到特定应用异常时，再将该域名加入黑名单，不建议一开始把整个 fake-ip 改成 `redir-host`。
+fake-ip 黑名单包含局域网、localhost、NTP、QQ/腾讯、微软连通性检测、Xbox，以及 Steam 直连侧的四个确切域名（`steamcontent.com`、`steamserver.net`、`steam-chat.com` 已经是 `DIRECT`，`xiaokuai.com` 是 geosite 唯一没覆盖的 CDN 落地域名）等常见兼容项。Steam 那几条的理由是并发量：`steam.exe` 下载一个 depot 会开几百条分片连接，走 fake-ip 意味着每条都要先进一次拦截与嗅探。遇到特定应用异常时，再将该域名加入黑名单，不建议一开始把整个 fake-ip 改成 `redir-host`。
 
 ## TUN 配置
 

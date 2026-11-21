@@ -59,7 +59,7 @@ error: proxy [🌏 爱奇艺&哔哩哔哩] not found
 于是 fake-ip 下大陆域名照旧拿 198.18.x、`ip daddr @china_ip_route` 永不命中 —— **绕过开关开了等于没开**。
 `+fake-ip-filter:` 走 `:prepend_array`（`(模块 ++ 现有).uniq`），模块自己声明的条目在前、动态追加项在后，两者都在。
 实测：订阅 24 项 → yml_change 后 28 项 → 普通键合并只剩模块自己的条目（丢掉 oc-cn-domain）→ `+` 合并时两边都在且无重复，
-`mihomo -t` 通过。`test_converter.js` 里已加断言防回退。模块当前声明 34 项（含 Steam 下载 CDN 那 13 项）。
+`mihomo -t` 通过。`test_converter.js` 里已加断言防回退。模块当前声明 25 项（含 Steam 那 4 项）。
 
 ## 与桌面脚本的差异
 

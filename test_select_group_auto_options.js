@@ -133,33 +133,35 @@ assert.ok(
     'Tailscale domains should bypass sniffing',
 )
 
-// Steam 下载的字节从 302 落地域名流出，不是 steamcontent/steamserver。这些运营商复用
-// 域名过去只靠 GEOSITE,cn 兜底，判定不一致时同一 depot 一半直连一半绕代理，Steam 反复
-// 换源 → 下载断断续续。规则和 fake-ip-filter 两边都必须在，且规则要排在 GEOSITE,steam 前。
-const steamCdnDomains = [
-    'nsclouds.cn',
-    'smogfly.com',
-    'hzywinf.com',
-    'xiaokuai.com',
-    'eccdnx.com',
-    'pphimalayanrt.com',
-    'clngaa.com',
-    'baishangeek.cn',
-    'alikunlun.com',
-    'trpcdn.net',
-]
+// Steam 下载的字节从 302 落地域名流出，不是 steamcontent/steamserver。四个落地域名
+// 里三个（files.steam.nsclouds.cn / gstore.val.smogfly.com / xz.hzywinf.com）在
+// geosite.dat 的 cn 分类里本来就有，跟着 GEOSITE,cn 落「国内网站」；只有
+// xz.ty.xiaokuai.com 在任何分类里都不存在，拿到 fake-ip 198.18.8.22 被送进代理组，
+// 导致同一 depot 的分片一半直连一半绕代理。所以显式规则保持最小：只钉这一条。
 const steamProxyRule = generatedRules.indexOf('GEOSITE,steam,游戏专用')
 assert.ok(steamProxyRule > 0, 'the Steam store/community rule should be generated')
-for (const domain of steamCdnDomains) {
-    const directRule = `DOMAIN-SUFFIX,${domain},DIRECT`
-    assert.ok(generatedRules.includes(directRule), `${domain} should bypass the proxy`)
-    assert.ok(
-        generatedRules.indexOf(directRule) < steamProxyRule,
-        `${domain} must be evaluated before GEOSITE,steam so it is not pulled into 游戏专用`,
+
+const xiaokuaiRule = 'DOMAIN-SUFFIX,xiaokuai.com,DIRECT'
+assert.ok(generatedRules.includes(xiaokuaiRule), 'xiaokuai.com has no geosite category, so it needs an explicit rule')
+assert.ok(
+    generatedRules.indexOf(xiaokuaiRule) < steamProxyRule,
+    'xiaokuai.com must be evaluated before GEOSITE,steam so it is not pulled into 游戏专用',
+)
+assert.ok(
+    result.dns['fake-ip-filter'].includes('+.xiaokuai.com'),
+    'xiaokuai.com must not receive Fake-IP addresses, or its shard connections enter the proxy',
+)
+// 这三个域名 geosite:cn 已经覆盖，靠「国内网站」兜底即可，不要再往规则表里堆。
+for (const domain of ['nsclouds.cn', 'smogfly.com', 'hzywinf.com', 'eccdnx.com', 'clngaa.com', 'pphimalayanrt.com']) {
+    assert.equal(
+        generatedRules.some((rule) => rule.startsWith(`DOMAIN-SUFFIX,${domain},`)),
+        false,
+        `${domain} is already matched by geosite:cn, an explicit rule is redundant`,
     )
-    assert.ok(
+    assert.equal(
         result.dns['fake-ip-filter'].includes(`+.${domain}`),
-        `${domain} must not receive Fake-IP addresses, or every shard connection enters TUN`,
+        false,
+        `${domain} should keep following geosite:cn instead of getting its own exception`,
     )
 }
 for (const domain of ['steamcontent.com', 'steamserver.net', 'steam-chat.com']) {
