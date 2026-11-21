@@ -79,6 +79,16 @@ function applyRuntimeDefaults(config) {
             '+.msftconnecttest.com', '+.msftncsi.com', '+.xboxlive.com',
             '+.tailscale.com',
             '+.openbot.run', '*.openbot.run',
+            // Steam 直连侧：规则里已经是 DIRECT，就别再给 fake-ip。steam.exe 的分片
+            // 下载是几百条并发连接，全塞进 TUN（stack: system）本身就压吞吐。
+            '+.steamcontent.com', '+.steamserver.net', '+.steam-chat.com',
+            // Steam 国内下载 CDN 的 302 落地域名。下载字节实际是从这些域名流出，
+            // 不是从 steamcontent/steamserver。它们是运营商复用域名，其中
+            // xz.ty.xiaokuai.com 曾被判成代理（fake-ip 198.18.8.22），同一 depot
+            // 的分片请求一半直连一半绕代理，Steam 反复换源 → 下载断断续续。
+            '+.nsclouds.cn', '+.smogfly.com', '+.hzywinf.com', '+.xiaokuai.com',
+            '+.eccdnx.com', '+.pphimalayanrt.com', '+.clngaa.com',
+            '+.baishangeek.cn', '+.alikunlun.com', '+.trpcdn.net',
         ]),
         'use-hosts': true,
         'use-system-hosts': true,
@@ -1206,6 +1216,21 @@ function main(config) {
     if (ruleOptions.games) {
         rules.push(
             'GEOSITE,category-games@cn,国内网站',
+            // Steam 下载真正的字节从 302 落地域名流出，这些域名不在 steamcontent /
+            // steamserver 白名单里，过去只靠 GEOSITE,cn 兜底。运营商复用域名（腾讯
+            // CTGSLB 的 xz.ty.xiaokuai.com 与 xz.hzywinf.com 同一套落地）判定不一致，
+            // 同一 depot 的分片请求一半直连一半绕代理 → Steam 反复换源、下载断断续续。
+            // 必须排在下面 GEOSITE,steam 之前，否则会被整体吸进代理组。
+            'DOMAIN-SUFFIX,nsclouds.cn,DIRECT',
+            'DOMAIN-SUFFIX,smogfly.com,DIRECT',
+            'DOMAIN-SUFFIX,hzywinf.com,DIRECT',
+            'DOMAIN-SUFFIX,xiaokuai.com,DIRECT',
+            'DOMAIN-SUFFIX,eccdnx.com,DIRECT',
+            'DOMAIN-SUFFIX,pphimalayanrt.com,DIRECT',
+            'DOMAIN-SUFFIX,clngaa.com,DIRECT',
+            'DOMAIN-SUFFIX,baishangeek.cn,DIRECT',
+            'DOMAIN-SUFFIX,alikunlun.com,DIRECT',
+            'DOMAIN-SUFFIX,trpcdn.net,DIRECT',
             // Steam 拆分：登录 / 下载 / 好友直连，商店 / 社区等其余内容由
             // 下面的 GEOSITE,steam 交给「游戏专用」。这批规则必须排在
             // GEOSITE,steam 前面，否则会被整体吸进代理组。下载 CDN

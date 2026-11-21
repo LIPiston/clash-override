@@ -132,6 +132,51 @@ assert.ok(
     result.sniffer['skip-domain'].includes('+.tailscale.com'),
     'Tailscale domains should bypass sniffing',
 )
+
+// Steam 下载的字节从 302 落地域名流出，不是 steamcontent/steamserver。这些运营商复用
+// 域名过去只靠 GEOSITE,cn 兜底，判定不一致时同一 depot 一半直连一半绕代理，Steam 反复
+// 换源 → 下载断断续续。规则和 fake-ip-filter 两边都必须在，且规则要排在 GEOSITE,steam 前。
+const steamCdnDomains = [
+    'nsclouds.cn',
+    'smogfly.com',
+    'hzywinf.com',
+    'xiaokuai.com',
+    'eccdnx.com',
+    'pphimalayanrt.com',
+    'clngaa.com',
+    'baishangeek.cn',
+    'alikunlun.com',
+    'trpcdn.net',
+]
+const steamProxyRule = generatedRules.indexOf('GEOSITE,steam,游戏专用')
+assert.ok(steamProxyRule > 0, 'the Steam store/community rule should be generated')
+for (const domain of steamCdnDomains) {
+    const directRule = `DOMAIN-SUFFIX,${domain},DIRECT`
+    assert.ok(generatedRules.includes(directRule), `${domain} should bypass the proxy`)
+    assert.ok(
+        generatedRules.indexOf(directRule) < steamProxyRule,
+        `${domain} must be evaluated before GEOSITE,steam so it is not pulled into 游戏专用`,
+    )
+    assert.ok(
+        result.dns['fake-ip-filter'].includes(`+.${domain}`),
+        `${domain} must not receive Fake-IP addresses, or every shard connection enters TUN`,
+    )
+}
+for (const domain of ['steamcontent.com', 'steamserver.net', 'steam-chat.com']) {
+    assert.ok(
+        result.dns['fake-ip-filter'].includes(`+.${domain}`),
+        `${domain} is already DIRECT, so it must not receive Fake-IP addresses`,
+    )
+}
+// sniffer 是 override-destination: false，嗅探出域名但不改写目标。这些域名一旦拿真实
+// IP，连接目标就是 IP，GEOSITE,steam 永不命中，商店/社区分流会漂移。
+for (const domain of ['steampowered.com', 'akamaized.net', 'steamstatic.com']) {
+    assert.equal(
+        result.dns['fake-ip-filter'].includes(`+.${domain}`),
+        false,
+        `${domain} must stay on fake-ip so GEOSITE,steam keeps matching`,
+    )
+}
 for (const disabledSiteGroup of regionSiteGroups) {
     assert.equal(
         generatedRules.some((rule) => rule.endsWith(`,${disabledSiteGroup}`)),
