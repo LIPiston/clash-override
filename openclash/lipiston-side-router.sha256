@@ -1,11 +1,11 @@
 Generated from `global_script.js` with `openclash/convert-global-script.js`, which writes both
 variants in one run (IPv4-only at the bare path, dual-stack at `-v4v6`).
 
-SHA-256 of `global_script.js`: `415e6710ceb101e7bd8e1df5a230474f901c654b29a1576685c8d5a86b5b9586`
+SHA-256 of `global_script.js`: `235cc0a6e2dbadd4c03db104fe412ff94863ce97d0bc63d2ab5d4b55d14572e3`
 
-SHA-256 of `openclash/lipiston-side-router`: `bad7a1cc00e0ecd9c98092f4a8a2c7f840552cf97c5d94239299d8a8a6684ecb`
+SHA-256 of `openclash/lipiston-side-router`: `b6389bf8a64b20d14afacf0069d4a8e00fb7bb8a04befad0f29fa24b3d6c7ead`
 
-SHA-256 of `openclash/lipiston-side-router-v4v6`: `0f7527bcc6e0ae0e73d3e613c520f121248a218fbc93a9813aeacc5abb194663`
+SHA-256 of `openclash/lipiston-side-router-v4v6`: `08431a9566dfb32a8de1fe0778bfc6caa321a17162682d208843a071e75e5113`
 
 Note: `dns.fake-ip-filter` is emitted with the `+` (prepend) operator, not a plain key. A plain
 key replaces the whole array in `YAML.overwrite`, which silently dropped everything

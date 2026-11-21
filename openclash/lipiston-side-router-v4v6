@@ -1074,7 +1074,7 @@ rule-providers:
     behavior: classical
     format: yaml
     interval: 86400
-    url: 'https://github.boki.moe/https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash-Classical.yaml'
+    url: 'https://gh-proxy.com/https://github.com/TG-Twilight/AWAvenue-Ads-Rule/raw/main/Filters/AWAvenue-Ads-Rule-Clash-Classical.yaml'
     path: './rule_provider/AWAvenue-Ads-Rule-Clash-Classical.yaml'
 
 # Replaces OpenClash's rule list: the subscription's own rules and OpenClash's

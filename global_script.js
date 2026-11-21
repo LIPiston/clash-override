@@ -1262,7 +1262,11 @@ function main(config) {
             ...ruleProviderCommon,
             behavior: 'classical',
             format: 'yaml',
-            url: 'https://github.boki.moe/https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash-Classical.yaml',
+            // github.boki.moe 这个加速前缀现在对任何路径都返回 403（连带 HTML 错误页），
+            // 表现为 `[Provider] AWAvenue-Ads-Rule pull error: 403 Forbidden`。换成
+            // gh-proxy.com：它把 github.com/<owner>/<repo>/raw/<branch>/<path> 直接
+            // 透传到 raw，实测 200，尺寸与 raw.githubusercontent.com 一致。
+            url: 'https://gh-proxy.com/https://github.com/TG-Twilight/AWAvenue-Ads-Rule/raw/main/Filters/AWAvenue-Ads-Rule-Clash-Classical.yaml',
             path: './ruleset/AWAvenue/AWAvenue-Ads-Rule-Clash-Classical.yaml',
         })
         config['proxy-groups'].push({

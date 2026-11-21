@@ -292,7 +292,11 @@ for (const block of providerBlocks) {
 assert.match(out, /^ {2}AWAvenue-Ads-Rule:$/m)
 assert.match(out, /^ {4}behavior: classical$/m)
 assert.match(out, /^ {4}format: yaml$/m)
-assert.match(out, /url: 'https:\/\/github\.boki\.moe\/https:\/\/raw\.githubusercontent\.com\/TG-Twilight\/AWAvenue-Ads-Rule\//)
+// 加速前缀换成 gh-proxy.com：github.boki.moe 已对任何路径返回 403，表现为
+// `[Provider] AWAvenue-Ads-Rule pull error: 403 Forbidden`。这里把前缀钉住，
+// 防止以后手滑改回失效的镜像。
+assert.match(out, /url: 'https:\/\/gh-proxy\.com\/https:\/\/github\.com\/TG-Twilight\/AWAvenue-Ads-Rule\/raw\/main\/Filters\/AWAvenue-Ads-Rule-Clash-Classical\.yaml'/)
+assert.doesNotMatch(out, /github\.boki\.moe/, 'the dead mirror must not come back')
 assert.doesNotMatch(out, /217heidai/, 'the old adblockfilters ruleset must be gone')
 assert.match(out, /^ {2}- RULE-SET,applications,下载软件$/m)
 assert.match(out, /^ {2}- RULE-SET,AWAvenue-Ads-Rule,广告过滤$/m)
