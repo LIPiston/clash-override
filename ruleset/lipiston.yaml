@@ -6,6 +6,7 @@ payload:
   - DOMAIN-SUFFIX,lvss.xyz
   - DOMAIN-SUFFIX,ai.lipiston.eu.org
   - DOMAIN-SUFFIX,hyacinthwiki.com
+  - DOMAIN-SUFFIX,llm.jianyuelab.net
 # UU 远程
   - DOMAIN-SUFFIX,nrd.nie.163.com
   - DOMAIN-SUFFIX,webapp.163.com
