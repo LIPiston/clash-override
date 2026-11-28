@@ -110,7 +110,7 @@ direct: {
 }
 ```
 
-当前内置的直连规则集为 `lipiston`，文件是 [`ruleset/lipiston.yaml`](../ruleset/lipiston.yaml)，内含 Minecraft / UU 远程 / 运动世界校园等条目。它按域名匹配，不使用固定端口。
+当前内置的直连规则集为 `lipiston`，文件是 [`ruleset/lipiston.yaml`](../ruleset/lipiston.yaml)，内含 Minecraft / UU 远程 / 运动世界校园 / JianyueLab 登录链路等条目。它按域名匹配，不使用固定端口。
 
 ### Steam 拆分
 

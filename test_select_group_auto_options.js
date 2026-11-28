@@ -108,6 +108,33 @@ assert.ok(
     generatedRules.includes('DOMAIN-SUFFIX,iydsj.com,DIRECT'),
     'Sports World Campus domains should bypass the proxy',
 )
+// JianyueLab 登录链路必须整体直连：站点（llm）、Passport 登录页（account）、会话接口
+// （passport-api）都在 jianyuelab.net，登录 SDK 却在另一个 TLD 的
+// webstatic.jianyuelab.co。漏掉任何一条，登录页和主站就会从不同出口出去，
+// Cloudflare 挑战与 Passport 会话校验会随机卡住。
+assert.ok(
+    generatedRules.includes('RULE-SET,lipiston,DIRECT'),
+    'the personal ruleset must be a DIRECT provider',
+)
+const lipistonRuleset = fs.readFileSync(path.join(__dirname, 'ruleset', 'lipiston.yaml'), 'utf8')
+for (const domain of ['jianyuelab.net', 'jianyuelab.co']) {
+    assert.ok(
+        lipistonRuleset.includes(`- DOMAIN-SUFFIX,${domain}`),
+        `${domain} must stay direct or the JianyueLab login flow leaves through a proxy`,
+    )
+}
+// 规则集由 mihomo 在运行时解析，类型拼错（比如 DOMAIN-KEYWOR）不会让本测试失败，
+// 却会让整份 provider 加载失败、所有直连规则静默失效。把允许的类型钉住。
+for (const rule of lipistonRuleset
+    .split('\n')
+    .filter((line) => line.trim().startsWith('- '))
+    .map((line) => line.trim().slice(2))) {
+    assert.match(
+        rule,
+        /^(DOMAIN|DOMAIN-SUFFIX|DOMAIN-KEYWORD|IP-CIDR|PROCESS-NAME),.+/,
+        `ruleset/lipiston.yaml has an invalid rule: ${rule}`,
+    )
+}
 assert.ok(
     generatedRules.includes('PROCESS-NAME,RustDesk,DIRECT'),
     'RustDesk should bypass the proxy',

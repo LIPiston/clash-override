@@ -120,15 +120,15 @@ sha256sum openclash/lipiston-side-router openclash/lipiston-side-router-v4v6
 
 改完 `global_script.js` 别忘了重跑转换器：生成物是产物，不是手写文件。推送到路由器后需要**重启** OpenClash 才会重新执行覆写模块（仅 `reload` 不会）。
 
-## 内置 Minecraft / UU 远程 / 运动世界校园直连
+## 内置直连规则集（Minecraft / UU 远程 / 运动世界校园 / JianyueLab 登录）
 
 `ruleset/lipiston.yaml` 用于游戏与校园 App 相关域名直连，当前包含：
 
 - `tecostudio`、`vitasub` 关键词；
-- `mc.windmilltown.net`、`lvss.xyz`；
-- `149.104.21.239/32`；
+- `mc.windmilltown.net`、`lvss.xyz`、`ai.lipiston.eu.org`、`hyacinthwiki.com`；
 - UU 远程 / GameViewer 相关的网易域名（`nrd.nie.163.com`、`webapp.163.com`、`gdl.netease.com`、`fp.ps.netease.com`）；
-- 运动世界校园 / [NekoSportsWorldTool](https://github.com/YanamiNeko/NekoSportsWorldTool) 的域名（`iydsj.com`，覆盖 `run.gxapp.iydsj.com`、`discovery.gxapp.iydsj.com`）与登录用极验域名（`geetest.com`）。
+- 运动世界校园 / [NekoSportsWorldTool](https://github.com/YanamiNeko/NekoSportsWorldTool) 的域名（`iydsj.com`，覆盖 `run.gxapp.iydsj.com`、`discovery.gxapp.iydsj.com`）与登录用极验域名（`geetest.com`）；
+- JianyueLab AI 网关的完整登录链路：`jianyuelab.net`（`llm` 站点、`account` Passport 登录页、`passport-api` 会话接口）与 `jianyuelab.co`（登录 SDK `webstatic.jianyuelab.co`，与主站不同 TLD，必须单独列出）。
 
 规则按域名/关键词匹配，不依赖服务器端口，也不会把整个 Java/Minecraft 进程设为直连。桌面端通过 `direct.ruleSets = ['lipiston']` 挂上这份规则集；模块则把它注册为在线 `rule-provider`（`type: http` + `url` 指向仓库里的这份文件，`path` 改到路由器上的 `./rule_provider/lipiston.yaml`）。那一份本地副本是兜底：mihomo 按 `interval` 拉取上游，拉不到时才继续用它（`type: file` 会让 mihomo 完全忽略 `url`、规则永远不更新，所以模块不会把 `lipiston` 转成 `file`）。
 

@@ -6,7 +6,10 @@ payload:
   - DOMAIN-SUFFIX,lvss.xyz
   - DOMAIN-SUFFIX,ai.lipiston.eu.org
   - DOMAIN-SUFFIX,hyacinthwiki.com
-  - DOMAIN-KEYWOR,jianyuelab
+# JianyueLab AI 网关（llm 站点 + account Passport 登录页 + passport-api 会话接口）
+  - DOMAIN-SUFFIX,jianyuelab.net
+# Passport 登录 SDK 静态资源（webstatic.jianyuelab.co，独立 TLD）
+  - DOMAIN-SUFFIX,jianyuelab.co
 # UU 远程
   - DOMAIN-SUFFIX,nrd.nie.163.com
   - DOMAIN-SUFFIX,webapp.163.com
